@@ -1,0 +1,30 @@
+# Node.js
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+package-lock.json
+yarn.lock
+pnpm-lock.yaml
+
+# TypeScript build output
+dist/
+build/
+out/
+
+# 환경 변수 & 설정 파일
+.env
+.env.*
+!.env.example
+
+# OS / IDE 별 파일
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/
+
+# Logs
+logs/
+*.log
+*.log.*
