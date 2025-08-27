@@ -1,0 +1,13 @@
+{
+  "compilerOptions": {
+    "target": "ES2022",                     // 최신 JS 기능 사용
+    "module": "commonjs",                   // NodeJS 환경
+    "moduleResolution": "node",
+    "esModuleInterop": true,
+    "allowSyntheticDefaultImports": true,
+    "strict": true,                          // TS strict 모드
+    "experimentalDecorators": true,          // 데코레이터 허용
+    "emitDecoratorMetadata": true,           // 데코레이터 메타데이터 생성
+    "useDefineForClassFields": false         // TypeORM 데코레이터 호환
+  }
+}
