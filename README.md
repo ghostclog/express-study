@@ -1,117 +1,74 @@
-project-root/
+# Express + TypeORM 기반 웹 애플리케이션
+
+Node.js, Express, TypeORM을 사용하여 구현한 웹 애플리케이션 프로젝트입니다. 헥사고날 아키텍처(Hexagonal Architecture)를 참고하여 유지보수와 확장이 용이한 구조를 지향합니다.
+
+## ✨ 주요 기능 (Features)
+
+- **사용자 인증**: 로컬 이메일/비밀번호, 소셜 로그인(Google, GitHub)
+- **세션 관리**: `express-session`을 이용한 로그인 상태 유지
+- **게시판**: 게시글 CRUD(만들기, 읽기, 수정, 삭제)
+- **댓글**: 게시글에 대한 댓글 작성 및 조회
+- **실시간 알림**: `socket.io`를 활용한 새 댓글 실시간 푸시 알림
+
+## 🛠️ 기술 스택 (Tech Stack)
+
+### 핵심 (Core)
+- **`express`**: 웹 서버 프레임워크
+- **`typescript`**: 정적 타입 지원
+- **`typeorm`**: ORM (Object-Relational Mapper)
+- **`sqlite3`**: 경량 데이터베이스
+- **`reflect-metadata`**: TypeORM 데코레이터 지원
+
+### 인증 & 보안 (Auth & Security)
+- **`passport`**: 인증 미들웨어
+  - `passport-local`: 로컬 로그인 전략
+  - `passport-google-oauth20`, `passport-github2`: 소셜 로그인 전략
+- **`express-session`**: 세션 관리
+- **`bcrypt`**: 비밀번호 해싱
+
+### 템플릿 & 실시간 (View & Real-time)
+- **`ejs`**: 템플릿 엔진
+- **`socket.io`**: 실시간 웹 소켓 통신
+
+### 개발 도구 (Dev Tools)
+- **`ts-node-dev`**: 개발 환경용 핫 리로드 서버
+- **`@types/*`**:各種ライブラリのTypeScript型定義
+
+## 📂 프로젝트 구조 (Project Structure)
+
+```
+.
 ├── src/
-│   ├── app.ts                # Express 서버 엔트리포인트
-│   ├── config/               # 설정 파일들 (DB, 세션 등)
-│   │   ├── db.ts             # TypeORM DataSource 설정
-│   │   └── session.ts        # express-session & passport 설정
-│   ├── domain/               # 엔티티 정의 (TypeORM Entity)
-│   │   ├── User.ts
-│   │   ├── Post.ts
-│   │   └── Comment.ts
-│   ├── infrastructure/       # DB/ORM/Repository 계층
-│   │   ├── repositories/
-│   │   │   ├── UserRepository.ts
-│   │   │   ├── PostRepository.ts
-│   │   │   └── CommentRepository.ts
-│   │   └── orm.ts            # DataSource 초기화
-│   ├── application/          # 서비스 로직
-│   │   ├── UserService.ts
-│   │   ├── PostService.ts
-│   │   └── CommentService.ts
-│   ├── presentation/         # Express 라우터 (Controller)
-│   │   ├── routes/
-│   │   │   ├── index.ts      # 홈/소개
-│   │   │   ├── auth.ts       # 로그인/회원가입/소셜 로그인
-│   │   │   ├── posts.ts      # 게시글 CRUD
-│   │   │   └── comments.ts   # 댓글
-│   │   └── templates/        # ejs 뷰
-│   │       ├── layout/
-│   │       │   ├── header.ejs
-│   │       │   └── footer.ejs
-│   │       ├── index.ejs
-│   │       ├── posts.ejs
-│   │       └── detail.ejs
-│   └── utils/                # 유틸 모듈
-│       ├── crypto.ts
-│       └── sessionStore.ts
+│   ├── main.ts             # Express 서버 엔트리포인트 및 초기화
+│   ├── adapter/            # 외부 시스템 연동 (I/O)
+│   │   ├── db/             # 데이터베이스 (TypeORM 설정, Repository)
+│   │   └── rest/           # REST API (Express 라우터)
+│   ├── application/        # 서비스 로직 (비즈니스 규칙)
+│   ├── domain/             # 핵심 도메인 모델 (엔티티, DTO)
+│   └── settings/           # 보안, 세션 등 각종 설정
 │
-├── public/                   # 정적 파일(css, js, img)
-├── ormconfig.json            # TypeORM 설정 파일 (또는 .ts 버전 가능)
+├── database.sqlite         # SQLite 데이터베이스 파일
 ├── package.json
-├── tsconfig.json
-└── README.md
+└── tsconfig.json
+```
 
-------
+## 🚀 시작하기 (Getting Started)
 
-📦필요한 npm 패키지 목록
-핵심
+### 1. 의존성 설치
 
-express → 웹 서버
+```bash
+npm install
+```
 
-express-session → 세션 관리
+### 2. 개발 서버 실행
 
-typeorm → ORM (Entity 관리)
+`ts-node-dev`를 사용하여 코드가 변경될 때마다 서버가 자동으로 재시작됩니다.
 
-sqlite3 → SQLite 드라이버
+```bash
+npm run dev
+```
 
-reflect-metadata → TypeORM 필수 데코레이터 지원
+### 3. 데이터베이스
 
-인증 & 보안
-
-passport → 인증 미들웨어
-
-passport-local → 로컬 로그인 전략
-
-passport-google-oauth20 → 구글 소셜 로그인
-
-passport-github2 → 깃허브 소셜 로그인 (추가 예시)
-
-bcrypt → 비밀번호 해싱
-
-템플릿 엔진
-
-ejs → 뷰 템플릿 엔진
-
-실시간 기능
-
-socket.io → 댓글 알림, 실시간 이벤트 전송
-
-개발 편의
-
-typescript
-
-ts-node-dev → 개발용 핫리로드
-
-@types/express
-
-@types/node
-
-@types/ejs
-
-@types/express-session
-
-@types/passport
-
-@types/passport-local
-
-@types/socket.io
-
-🚀 실행 시나리오 (업데이트 반영)
-
-메인 페이지 (/) → 소개 및 시작 버튼
-
-회원가입/로그인 (/auth)
-
-로컬 로그인 (passport-local)
-
-구글/깃허브 로그인 (passport-google-oauth20, passport-github2)
-
-로그인 후 세션 기반 유저 유지
-
-게시글 리스트 (/posts) → 글 목록
-
-게시글 상세 (/posts/:id) → 글 & 댓글, 실시간 알림
-
-세션 관리 → SQLite + connect-sqlite3 (선택)
-
-알림 기능 → 댓글 작성 시 socket.io로 해당 게시글 구독자들에게 push
+서버가 처음 시작될 때 `src/main.ts`의 TypeORM `synchronize: true` 설정에 의해 `database.sqlite` 파일과 테이블이 자동으로 생성됩니다.
+> **⚠️ 주의**: `synchronize: true`는 개발 환경에서만 사용해야 합니다. 프로덕션 환경에서는 데이터 손실의 위험이 있으므로 TypeORM 마이레이션을 사용해야 합니다.
