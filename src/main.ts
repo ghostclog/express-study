@@ -1,26 +1,13 @@
 import express from "express";
 import session from "express-session";
 import passport from "passport";
-import { DataSource } from "typeorm";
-// import userRouter from "./routes/user";      // 라우터 예시
-// import productRouter from "./routes/product";
-// import { authMiddleware } from "./middlewares/auth"; // 커스텀 미들웨어 예시
-// import { loggerMiddleware } from "./middlewares/logger";
-import { User } from "./adapter/db/setting/database";
+import { AppDataSource } from "./database/setting/config"
 
 const app = express();
 const port = 3000;
 
-// ---------- DB 연결 (선택) ----------
-export const AppDataSource = new DataSource({
-    type: "sqlite",
-    database: "database.sqlite",
-    synchronize: true,
-    logging: false,
-    entities: [User],
-    migrations: [],
-    subscribers: [],
-  });
+AppDataSource.initialize()
+
 // ---------- 공통 미들웨어 ----------
 app.use(express.json()); // JSON Body 파싱
 app.use(express.urlencoded({ extended: true })); // Form data 파싱
