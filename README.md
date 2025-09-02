@@ -32,7 +32,7 @@ Node.js, Express, TypeORM을 사용하여 구현한 웹 애플리케이션 프�
 
 ### 개발 도구 (Dev Tools)
 - **`ts-node-dev`**: 개발 환경용 핫 리로드 서버
-- **`@types/*`**:各種ライブラリのTypeScript型定義
+- **`@types/*`**: 다양한 라이브러리를 위한 TypeScript 타입 정의 파일
 
 ## 📂 프로젝트 구조 (Project Structure)
 
