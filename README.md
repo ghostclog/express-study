@@ -29,6 +29,7 @@ Node.js, Express, TypeORM을 사용하여 구현한 웹 애플리케이션 프�
 ### 템플릿 & 실시간 (View & Real-time)
 - **`ejs`**: 템플릿 엔진
 - **`socket.io`**: 실시간 웹 소켓 통신
+- **`Node-Media-Server (NMS)`**: 자바스크립트 기반의 미디어 서버
 
 ### 개발 도구 (Dev Tools)
 - **`ts-node-dev`**: 개발 환경용 핫 리로드 서버
