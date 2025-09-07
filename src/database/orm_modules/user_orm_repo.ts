@@ -7,6 +7,21 @@ class UserOrmRepo {
     private userRepo = AppDataSource.getRepository(User);
     private userProfileRepo = AppDataSource.getRepository(UserProfile);
 
+    //C
+    async createUser(user:UserEn){
+        const userEntity = this.userRepo.create({
+            email: user.email,
+            password: user.password,
+            name: user.name,
+            createdAt:user.createdAt,
+            updatedAt:user.updatedAt
+        });
+
+        // DB에 저장
+        await this.userRepo.save(userEntity);
+    }
+
+    //R
     async getUserById(id: number): Promise<UserEn | null> {
         const user_entity = await this.userRepo.findOne({
             where: { id },
@@ -48,6 +63,13 @@ class UserOrmRepo {
         }
         return userEn;
     }
+
+    //U
+
+    //D
+
+
+
 }
 
 export default UserOrmRepo;

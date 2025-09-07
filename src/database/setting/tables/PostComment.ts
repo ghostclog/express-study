@@ -8,9 +8,6 @@ export class PostComment {
   id!: number;
 
   @Column()
-  title!: string;
-
-  @Column()
   contents!: string;
 
   @ManyToOne(() => Post, (post) => post.postComments)
