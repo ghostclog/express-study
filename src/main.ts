@@ -2,6 +2,9 @@ import express from "express";
 import session from "express-session";
 import passport from "passport";
 import { AppDataSource } from "./database/setting/config"
+import {createUserRouter} from "./adapter/user_route";
+
+import UserServiceClass from "./application/UserService";
 
 const app = express();
 const port = 3000;
@@ -26,14 +29,12 @@ app.use(
 app.use(passport.initialize());
 app.use(passport.session());
 
-// ---------- 라우터 연결 ----------
-// app.use("/users", authMiddleware, userRouter);       // 인증 필요
-// app.use("/products", productRouter);                 // 인증 선택적
+// ---------- 라우터에 주입할 의존성 생성 ----------
+const user_service = new UserServiceClass()
 
-// ---------- 기본 라우트 ----------
-app.get("/", (req, res) => {
-  res.send("Hello, Express + TS!");
-});
+// ---------- 라우터 연결 ----------
+app.use("/users", createUserRouter(user_service));       // 인증 필요
+// app.use("/products", productRouter);                 // 인증 선택적
 
 // ---------- 서버 시작 ----------
 app.listen(port, () => {
