@@ -35,7 +35,7 @@ passport.use(
 app.use(passport.initialize());
 app.use(passport.session());
 
-
+app.set("views", path.join(__dirname, "views")); // 추가
 app.set("view engine", "ejs");
 
 // ---------- 라우터에 주입할 의존성 생성 ----------
