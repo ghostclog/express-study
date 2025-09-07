@@ -3,6 +3,7 @@ import bcrypt from "bcrypt";
 
 import { Strategy as LocalStrategy } from "passport-local";
 import UserOrmRepo from "../database/orm_modules/user_orm_repo";
+import { NextFunction, Request, Response } from "express";
 
 const userRepo = new UserOrmRepo();
 export const passport_strategy =new LocalStrategy(
@@ -29,3 +30,10 @@ passport.deserializeUser(async (id: number, done) => {
   const user = await userRepo.getUserById(id);
   done(null, user);
 });
+
+export function MeddlewareNeedLogin(req:Request, res:Response, next:NextFunction) {
+  if (req.isAuthenticated && req.isAuthenticated()) {
+    return next(); // 인증되어 있으면 다음 미들웨어(혹은 라우트 핸들러) 실행
+  }
+  res.redirect("/login"); // 인증 안 되었으면 로그인 페이지로
+}
