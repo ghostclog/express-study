@@ -1,5 +1,5 @@
 import { Router } from "express";
-import path from "path";
+import passport from "passport";
 
 import type UserService from "../application/UserService";
 
@@ -12,9 +12,7 @@ export function createUserRouter(userService: UserService) {
     res.json(user);
   });
 
-  router.get("/regist", (req, res) => {
-    res.render("regist"); // views/regist.ejs를 찾아서 렌더링
-  });
+  router.get("/regist", (req, res) => {res.render("regist");});
 
   router.post("/regist", async (req, res) => {
     const email = req.body.email
@@ -22,6 +20,24 @@ export function createUserRouter(userService: UserService) {
     const name = req.body.name
     const user = await userService.createUser(email,not_hashed_password,name);
     res.json(user);
+  });
+
+  router.get("/login", (req, res) => res.render("login"));
+
+  router.post(
+    "/login",
+    passport.authenticate("local", {
+      successRedirect: "/",
+      failureRedirect: "/login",
+      failureFlash: true,
+    })
+  );
+
+  router.post("/logout", (req, res, next) => {
+    req.logout((err) => {
+      if (err) return next(err);
+      res.redirect("/login");
+    });
   });
 
   return router;
