@@ -1,13 +1,16 @@
 import express from "express";
 import session from "express-session";
 import passport from "passport";
+
 import { AppDataSource } from "./database/setting/config"
 import {createUserRouter} from "./adapter/user_route";
 
 import UserServiceClass from "./application/UserService";
+import {passport_strategy} from "./settings/security"
 
 const app = express();
 const port = 3000;
+
 
 AppDataSource.initialize()
 
@@ -26,8 +29,14 @@ app.use(
   })
 );
 
+passport.use(
+  passport_strategy
+);
 app.use(passport.initialize());
 app.use(passport.session());
+
+
+
 
 // ---------- 라우터에 주입할 의존성 생성 ----------
 const user_service = new UserServiceClass()
