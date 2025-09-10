@@ -19,7 +19,8 @@ app.set("view engine", "ejs");
 app.set("views", "./src/views");
 
 // ---------- 공통 미들웨어 ----------
-app.use(express.static('public')); // 'public' 디렉토리를 정적 파일 제공 폴더로 설정
+// '/static' URL 경로를 'src/static' 실제 폴더에 연결합니다.
+app.use('/static', express.static(path.join(__dirname, 'static')));
 app.use(express.json()); // JSON Body 파싱
 app.use(express.urlencoded({ extended: true })); // Form data 파싱
 // app.use(loggerMiddleware); // 로깅 미들웨어
