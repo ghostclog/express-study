@@ -4,6 +4,7 @@ import passport from "passport";
 import path from "path";
 import { AppDataSource } from "./database/setting/config"
 import {createUserRouter} from "./adapter/user_route";
+import {createStreamRouter} from "./adapter/stream_router";
 
 import UserServiceClass from "./application/UserService";
 import {passport_strategy} from "./settings/security"
@@ -46,6 +47,7 @@ const user_service = new UserServiceClass()
 
 // ---------- 라우터 연결 ----------
 app.use("/users", createUserRouter(user_service));       // 인증 필요
+app.use("/", createStreamRouter());
 // app.use("/products", productRouter);                 // 인증 선택적
 
 // ---------- 서버 시작 ----------
