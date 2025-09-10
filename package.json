@@ -23,6 +23,7 @@
     "ejs": "^3.1.10",
     "express": "^5.1.0",
     "express-session": "^1.18.2",
+    "node-media-server": "^4.0.21",
     "passport": "^0.7.0",
     "passport-github2": "^0.1.12",
     "passport-google-oauth20": "^2.0.0",
