@@ -14,7 +14,13 @@ const port = 3000;
 
 AppDataSource.initialize()
 
+// ---------- 템플릿 엔진 설정 ----------
+app.set("view engine", "ejs");
+app.set("views", "./src/views");
+
 // ---------- 공통 미들웨어 ----------
+// '/static' URL 경로를 'src/static' 실제 폴더에 연결합니다.
+app.use('/static', express.static(path.join(__dirname, 'static')));
 app.use(express.json()); // JSON Body 파싱
 app.use(express.urlencoded({ extended: true })); // Form data 파싱
 // app.use(loggerMiddleware); // 로깅 미들웨어
@@ -34,9 +40,6 @@ passport.use(
 );
 app.use(passport.initialize());
 app.use(passport.session());
-
-app.set("views", path.join(__dirname, "views")); // 추가
-app.set("view engine", "ejs");
 
 // ---------- 라우터에 주입할 의존성 생성 ----------
 const user_service = new UserServiceClass()
