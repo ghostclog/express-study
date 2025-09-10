@@ -2,6 +2,7 @@ import { Router } from "express";
 import passport from "passport";
 
 import type UserService from "../application/UserService";
+import {MeddlewareNeedLogin} from "../settings/security"
 
 export function createUserRouter(userService: UserService) {
   const router = Router();
@@ -33,7 +34,7 @@ export function createUserRouter(userService: UserService) {
     })
   );
 
-  router.post("/logout", (req, res, next) => {
+  router.post("/logout", MeddlewareNeedLogin, (req, res, next) => {
     req.logout((err) => {
       if (err) return next(err);
       res.redirect("/login");

@@ -1,0 +1,36 @@
+:root {
+    --brand-primary: #FF7F50; /* Coral */
+    --brand-secondary: #FFA500; /* Orange */
+    --brand-light: #FFF0E5; /* Light Orange */
+}
+body {
+    background-color: #ffffff; /* White background */
+}
+.container {
+    max-width: 960px;
+}
+.navbar {
+    border-bottom: 1px solid #eee;
+}
+.card {
+    border-radius: 12px; /* Rounded corners */
+    border: 1px solid #eee;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+}
+.btn-primary {
+    background-color: var(--brand-primary);
+    border-color: var(--brand-primary);
+}
+.btn-primary:hover {
+    background-color: #E57248; /* Darker coral */
+    border-color: #E57248;
+}
+.btn {
+    border-radius: 8px; /* Rounded buttons */
+}
+a {
+    color: var(--brand-secondary);
+}
+a:hover {
+    color: var(--brand-primary);
+}
