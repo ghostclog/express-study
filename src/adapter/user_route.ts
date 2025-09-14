@@ -20,16 +20,20 @@ export function createUserRouter(userService: UserService) {
     const not_hashed_password = req.body.password
     const name = req.body.name
     const user = await userService.createUser(email,not_hashed_password,name);
-    res.json(user);
+    res.redirect("/users/login");
   });
 
-  router.get("/login", (req, res) => res.render("login"));
+  router.get("/login", (req, res) => {
+    const messages = req.flash('error');
+    const errorMessage = messages.length > 0 ? messages[0] : null;
+    res.render("login", { error: errorMessage });
+  });
 
   router.post(
     "/login",
     passport.authenticate("local", {
       successRedirect: "/",
-      failureRedirect: "/login",
+      failureRedirect: "/users/login",
       failureFlash: true,
     })
   );
@@ -37,7 +41,7 @@ export function createUserRouter(userService: UserService) {
   router.post("/logout", MeddlewareNeedLogin, (req, res, next) => {
     req.logout((err) => {
       if (err) return next(err);
-      res.redirect("/login");
+      res.redirect("/users/login");
     });
   });
 

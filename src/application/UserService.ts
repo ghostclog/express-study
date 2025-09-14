@@ -7,6 +7,11 @@ const salt = 10;
 const userRepo = new UserOrmRepo();
 
 class UserServiceClass {
+    async getUserByEmail(email: string): Promise<UserEn | null> {
+        const result = await userRepo.getUserByEmail(email);
+        return result
+    }
+
     async getUserById(userId: number): Promise<UserEn | null> {
         const result = await userRepo.getUserById(userId);
         return result
