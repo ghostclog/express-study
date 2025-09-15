@@ -1,4 +1,4 @@
-<img width="975" height="808" alt="image" src="https://github.com/user-attachments/assets/c7315cd4-519b-424e-ba6c-34fe48432a42" />1. 메인 페이지
+1. 메인 페이지
 
 <img width="1039" height="583" alt="image" src="https://github.com/user-attachments/assets/37d2ce17-7a0d-4daa-a5bb-466b09237279" />
 
