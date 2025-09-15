@@ -12,17 +12,28 @@
 <nav class="navbar navbar-expand-lg navbar-light bg-white mb-4">
   <div class="container">
     <a class="navbar-brand" href="/">Home</a>
-    <div class="collapse navbar-collapse">
-      <ul class="navbar-nav ms-auto">
-        <% if (typeof user !== 'undefined' && user) { %>
+    <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#main-nav" aria-controls="main-nav" aria-expanded="false" aria-label="Toggle navigation">
+      <span class="navbar-toggler-icon"></span>
+    </button>
+    <div class="collapse navbar-collapse" id="main-nav">
+      <ul class="navbar-nav me-auto mb-2 mb-lg-0">
+        <li class="nav-item">
+          <a class="nav-link" href="/posts">Post</a>
+        </li>
+        <li class="nav-item">
+          <a class="nav-link" href="/streaming">Streaming</a>
+        </li>
+      </ul>
+      <ul class="navbar-nav ms-auto mb-2 mb-lg-0 d-flex align-items-center">
+        <% if (user) { %>
           <li class="nav-item">
-            <span class="navbar-text">
+            <span class="navbar-text me-3">
               환영합니다, <%= user.name %>님!
             </span>
           </li>
           <li class="nav-item">
-            <form action="/logout" method="POST" class="d-inline">
-              <button type="submit" class="btn btn-link nav-link">로그아웃</button>
+            <form action="/users/logout" method="POST" class="d-inline">
+              <button type="submit" class="btn btn-link nav-link p-0">로그아웃</button>
             </form>
           </li>
         <% } else { %>
@@ -30,7 +41,7 @@
             <a class="nav-link" href="/users/login">로그인</a>
           </li>
           <li class="nav-item">
-            <a class="nav-link" href="/regist">회원가입</a>
+            <a class="nav-link" href="/users/regist">회원가입</a>
           </li>
         <% } %>
       </ul>

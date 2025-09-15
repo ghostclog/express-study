@@ -31,6 +31,8 @@ class UserOrmRepo {
 
         const userEn = new UserEn();
         userEn.id = user_entity.id;
+        userEn.email = user_entity.email;
+        userEn.password = user_entity.password;
         userEn.name = user_entity.name ?? "";
         userEn.createdAt = user_entity.createdAt;
         userEn.count_post = user_entity.posts ? user_entity.posts.length : 0;
@@ -52,6 +54,8 @@ class UserOrmRepo {
 
         const userEn = new UserEn();
         userEn.id = user_entity.id;
+        userEn.email = user_entity.email;
+        userEn.password = user_entity.password;
         userEn.name = user_entity.name ?? "";
         userEn.createdAt = user_entity.createdAt;
         userEn.count_post = user_entity.posts ? user_entity.posts.length : 0;

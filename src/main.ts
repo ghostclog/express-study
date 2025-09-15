@@ -1,4 +1,4 @@
-import express from "express";
+import express, { Router } from "express";
 import session from "express-session";
 import passport from "passport";
 import path from "path";
@@ -8,6 +8,7 @@ import {createStreamRouter} from "./adapter/stream_router";
 
 import UserServiceClass from "./application/UserService";
 import {passport_strategy} from "./settings/security"
+import flash from "connect-flash";
 
 const app = express();
 const port = 3000;
@@ -35,17 +36,26 @@ app.use(
     cookie: { maxAge: 1000 * 60 * 60 }, // 1시간
   })
 );
-
+app.use(flash())
 passport.use(
   passport_strategy
 );
 app.use(passport.initialize());
 app.use(passport.session());
+app.use((req, res, next) => {
+  res.locals.user = req.user;
+  next();
+});
 
 // ---------- 라우터에 주입할 의존성 생성 ----------
 const user_service = new UserServiceClass()
 
 // ---------- 라우터 연결 ----------
+const main_router = Router();
+main_router.get("/",(req,res)=>{
+  res.render("home");
+});
+app.use("/",main_router);
 app.use("/users", createUserRouter(user_service));       // 인증 필요
 app.use("/", createStreamRouter());
 // app.use("/products", productRouter);                 // 인증 선택적

@@ -2,17 +2,17 @@ import passport from "passport";
 import bcrypt from "bcrypt";
 
 import { Strategy as LocalStrategy } from "passport-local";
-import UserOrmRepo from "../database/orm_modules/user_orm_repo";
+import UserServiceClass from "../application/UserService";
 import { NextFunction, Request, Response } from "express";
 
-const userRepo = new UserOrmRepo();
+const userService = new UserServiceClass();
 export const passport_strategy =new LocalStrategy(
     {
       usernameField: "email",
       passwordField: "password",
     },
     async (email, password, done) => {
-      const user = await userRepo.getUserByEmail(email); // 이 메서드 추가 필요
+      const user = await userService.getUserByEmail(email); // 이 메서드 추가 필요
       if (!user) return done(null, false, { message: "email is not exist" });
       if (!user.password) return done(null, false, { message: "user data error" });
       const isValid = await bcrypt.compare(password, user.password);
@@ -26,8 +26,7 @@ passport.serializeUser((user: any, done) => {
 });
 
 passport.deserializeUser(async (id: number, done) => {
-  const userRepo = new (await import("../database/orm_modules/user_orm_repo")).default();
-  const user = await userRepo.getUserById(id);
+  const user = await userService.getUserById(id);
   done(null, user);
 });
 
@@ -35,5 +34,5 @@ export function MeddlewareNeedLogin(req:Request, res:Response, next:NextFunction
   if (req.isAuthenticated && req.isAuthenticated()) {
     return next(); // 인증되어 있으면 다음 미들웨어(혹은 라우트 핸들러) 실행
   }
-  res.redirect("/login"); // 인증 안 되었으면 로그인 페이지로
+  res.redirect("/users/login"); // 인증 안 되었으면 로그인 페이지로
 }
