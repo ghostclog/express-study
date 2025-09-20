@@ -2,13 +2,17 @@ import express, { Router } from "express";
 import session from "express-session";
 import passport from "passport";
 import path from "path";
+import flash from "connect-flash";
+
 import { AppDataSource } from "./database/setting/config"
+import {passport_strategy} from "./settings/security"
+
 import { createUserRouter } from "./adapter/user_route";
 import { createStreamRouter } from "./adapter/stream_router";
+import { createPostRouter } from "./adapter/post_router";
 
+import PostServiceClass from "./application/PostService";
 import UserServiceClass from "./application/UserService";
-import {passport_strategy} from "./settings/security"
-import flash from "connect-flash";
 
 const app = express();
 const port = 3000;
@@ -49,6 +53,7 @@ app.use((req, res, next) => {
 
 // ---------- 라우터에 주입할 의존성 생성 ----------
 const user_service = new UserServiceClass()
+const post_service = new PostServiceClass()
 
 // ---------- 라우터 연결 ----------
 const main_router = Router();
@@ -58,6 +63,7 @@ main_router.get("/",(req,res)=>{
 app.use("/",main_router);
 app.use("/users", createUserRouter(user_service));       // 인증 필요
 app.use("/stream", createStreamRouter());
+app.use("/post", createPostRouter(post_service));
 // app.use("/products", productRouter);                 // 인증 선택적
 
 // ---------- 서버 시작 ----------
