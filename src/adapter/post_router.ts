@@ -3,32 +3,56 @@ import passport from "passport";
 
 import PostService from "../application/PostService";
 import { MeddlewareNeedLogin } from "../settings/security";
-import { PostEn } from "../domain/Post";
+import { PostEn, PostType } from "../domain/Post";
 
 export function createPostRouter(postService: PostService) {
   const router = Router();
 
+  const postTypeDisplayNames = {
+    [PostType.COMMON]: '일반',
+    [PostType.VIDEO_SHARE]: '영상 공유'
+  };
+
   // 1. EJS 페이지 렌더링 라우트
-  // 1-1. 게시글 목록 페이지
   router.get("/posts", (req, res) => {
-    res.render("post_list");
+    res.render("post_list", { postTypeDisplayNames });
   });
 
-  // 1-2. 게시글 상세 페이지
+  router.get("/posts/new", MeddlewareNeedLogin, (req, res) => {
+    res.render("post_form", {
+      mode: 'create',
+      post: null,
+      postTypes: PostType
+    });
+  });
+
   router.get("/posts/:post_id", async (req, res) => {
     const postId = parseInt(req.params.post_id, 10);
     const post = await postService.getPostById(postId);
-    res.render("post_detail", { post: post });
+    res.render("post_detail", { post: post, postTypeDisplayNames });
+  });
+
+  router.get("/posts/:post_id/edit", MeddlewareNeedLogin, async (req, res) => {
+    const postId = parseInt(req.params.post_id, 10);
+    const post = await postService.getPostById(postId);
+    
+    if (!post || (req.user && post.writer && req.user.id !== post.writer.id)) {
+        return res.status(403).send("수정 권한이 없습니다.");
+    }
+      
+    res.render("post_form", {
+        mode: 'edit',
+        post: post,
+        postTypes: PostType
+    });
   });
 
   // 2. API 라우트 (JSON 반환)
-  // 2-1. 전체 게시글 목록 데이터
   router.get("/api/posts", async (req, res) => {
     const result = await postService.getAllPosts();
     res.json(result);
   });
 
-  // 2-2. 게시글 생성
   router.post("/api/posts", MeddlewareNeedLogin, async (req, res) => {
     if (!req.user) {
       return res.status(401).send("User not found after login middleware.");
@@ -37,6 +61,20 @@ export function createPostRouter(postService: PostService) {
     const writerId = req.user.id;
     const result = await postService.createPost(post, writerId);
     res.status(201).json(result);
+  });
+
+  router.put("/api/posts/:post_id", MeddlewareNeedLogin, async (req, res) => {
+    const postId = parseInt(req.params.post_id, 10);
+    const postData: Partial<PostEn> = req.body;
+    
+    // Check ownership before updating
+    const post = await postService.getPostById(postId);
+    if (!post || (req.user && post.writer && req.user.id !== post.writer.id)) {
+        return res.status(403).send("수정 권한이 없습니다.");
+    }
+
+    const result = await postService.updatePost(postId, postData);
+    res.json(result);
   });
 
   return router;

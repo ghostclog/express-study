@@ -51,6 +51,9 @@ class PostOrmRepo {
         postEn.mp4_url = postEntity.mp4_url;
         postEn.contents = postEntity.contents;
         postEn.post_type = postEntity.post_type as PostType;
+        postEn.createdAt = postEntity.createdAt;
+        postEn.updatedAt = postEntity.updatedAt;
+
         if (postEntity.writer) {
             const writerEn = new UserEn();
             writerEn.id = postEntity.writer.id;

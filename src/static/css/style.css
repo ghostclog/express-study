@@ -1,41 +1,96 @@
 :root {
     --brand-primary: #FF7F50; /* Coral */
     --brand-secondary: #FFA500; /* Orange */
-    --brand-light: #FFF0E5; /* Light Orange */
+    --brand-light: #FFF8E1; /* A lighter, more pleasant background color */
+    --text-dark: #333;
+    --text-light: #666;
+    --border-color: #e0e0e0;
+    --box-shadow: 0 4px 12px rgba(0,0,0,0.08);
 }
+
 body {
-    background-color: #ffffff; /* White background */
+    background-color: var(--brand-light);
+    color: var(--text-dark);
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
 }
-.container {
-    max-width: 960px;
-}
+
+/* Navbar */
 .navbar {
-    border-bottom: 1px solid #eee;
+    box-shadow: var(--box-shadow);
+    border-bottom: 1px solid var(--border-color);
 }
+
+.navbar-brand.active,
+.nav-link.active {
+    color: var(--brand-primary) !important;
+}
+
+/* Card */
 .card {
-    border-radius: 12px; /* Rounded corners */
-    border: 1px solid #eee;
-    box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+    border-radius: 12px;
+    border: none;
+    box-shadow: var(--box-shadow);
+    overflow: hidden;
 }
+
+/* Buttons */
+.btn {
+    border-radius: 8px;
+    font-weight: 500;
+    padding: 0.75rem 1.25rem;
+    transition: all 0.2s ease-in-out;
+}
+
 .btn-primary {
     background-color: var(--brand-primary);
     border-color: var(--brand-primary);
+    color: white !important;
 }
 .btn-primary:hover {
     background-color: #E57248; /* Darker coral */
     border-color: #E57248;
+    transform: translateY(-2px);
+    box-shadow: 0 2px 8px rgba(0,0,0,0.1);
 }
-.btn {
-    border-radius: 8px; /* Rounded buttons */
-}
+
+/* Links */
 a {
     color: var(--brand-secondary);
+    transition: color 0.2s ease-in-out;
 }
 a:hover {
     color: var(--brand-primary);
+    text-decoration: none;
 }
-/* 비디오 플레이어 스타일 (선택 사항) */
+
+/* Tables */
+.table thead {
+    background-color: var(--brand-primary);
+    color: white;
+}
+.table-hover tbody tr:hover {
+    background-color: #fffaf0;
+    cursor: pointer;
+}
+
+/* Post Specific Styles */
+.post-header {
+    background-color: #fff;
+    padding: 2rem;
+    border-bottom: 1px solid var(--border-color);
+}
+.post-content {
+    background-color: #fff;
+    padding: 2rem;
+}
+.post-meta {
+    font-size: 0.9em;
+    color: var(--text-light);
+}
+
+/* Video player */
 .video-js {
-    width: 100%; /* 부모 요소에 맞게 조정 */
+    width: 100%;
     height: auto;
+    border-radius: 8px;
 }

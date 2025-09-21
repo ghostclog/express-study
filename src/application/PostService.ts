@@ -18,6 +18,11 @@ class PostServiceClass {
         const result = await postRepo.getPostById(postId);
         return result;
     }
+
+    async updatePost(postId: number, postData: Partial<PostEn>){
+        const result = await postRepo.updatePost(postId, postData);
+        return result;
+    }
 }
 
 export default PostServiceClass;
