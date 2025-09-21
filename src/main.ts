@@ -13,6 +13,7 @@ import { createPostRouter } from "./adapter/post_router";
 
 import PostServiceClass from "./application/PostService";
 import UserServiceClass from "./application/UserService";
+import CommentServiceClass from "./application/CommentService";
 
 const app = express();
 const port = 3000;
@@ -54,6 +55,7 @@ app.use((req, res, next) => {
 // ---------- 라우터에 주입할 의존성 생성 ----------
 const user_service = new UserServiceClass()
 const post_service = new PostServiceClass()
+const comment_service = new CommentServiceClass()
 
 // ---------- 라우터 연결 ----------
 const main_router = Router();
@@ -63,7 +65,7 @@ main_router.get("/",(req,res)=>{
 app.use("/",main_router);
 app.use("/users", createUserRouter(user_service));       // 인증 필요
 app.use("/stream", createStreamRouter());
-app.use("/post", createPostRouter(post_service));
+app.use("/post", createPostRouter(post_service, comment_service));
 // app.use("/products", productRouter);                 // 인증 선택적
 
 // ---------- 서버 시작 ----------

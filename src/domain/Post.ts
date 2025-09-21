@@ -23,5 +23,6 @@ export class PostEn  {
   writer?: UserEn;
   createdAt?: Date;
   updatedAt?: Date;
+  comment_count?: number;
 }
 

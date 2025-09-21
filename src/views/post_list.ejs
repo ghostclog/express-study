@@ -10,6 +10,7 @@
                     <th>제목</th>
                     <th>작성자</th>
                     <th>타입</th>
+                    <th>댓글 수</th>
                     <th>작성일</th>
                 </tr>
             </thead>
@@ -31,7 +32,7 @@
             .then(posts => {
                 const postListBody = document.getElementById('post-list');
                 if (posts.length === 0) {
-                    postListBody.innerHTML = '<tr><td colspan="5" class="text-center">게시글이 없습니다.</td></tr>';
+                    postListBody.innerHTML = '<tr><td colspan="6" class="text-center">게시글이 없습니다.</td></tr>';
                     return;
                 }
                 posts.forEach(post => {
@@ -49,6 +50,7 @@
                         <td>${post.title}</td>
                         <td>${post.writer ? post.writer.name : 'N/A'}</td>
                         <td>${displayPostType}</td>
+                        <td>${post.comment_count}</td>
                         <td>${createdAt}</td>
                     `;
                     postListBody.appendChild(row);

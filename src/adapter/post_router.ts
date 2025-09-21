@@ -2,10 +2,11 @@ import { Router } from "express";
 import passport from "passport";
 
 import PostService from "../application/PostService";
+import CommentService from "../application/CommentService";
 import { MeddlewareNeedLogin } from "../settings/security";
-import { PostEn, PostType } from "../domain/Post";
+import { PostEn, PostType, CommentEn } from "../domain/Post";
 
-export function createPostRouter(postService: PostService) {
+export function createPostRouter(postService: PostService, commentService: CommentService) {
   const router = Router();
 
   const postTypeDisplayNames = {
@@ -75,6 +76,59 @@ export function createPostRouter(postService: PostService) {
 
     const result = await postService.updatePost(postId, postData);
     res.json(result);
+  });
+
+  // 3. Comment API Routes
+  router.get("/api/posts/:post_id/comments", async (req, res) => {
+    const postId = parseInt(req.params.post_id, 10);
+    const comments = await commentService.getCommentsByPostId(postId);
+    res.json(comments);
+  });
+
+  router.post("/api/posts/:post_id/comments", MeddlewareNeedLogin, async (req, res) => {
+    if (!req.user) {
+      return res.status(401).send("User not found after login middleware.");
+    }
+    const postId = parseInt(req.params.post_id, 10);
+    const { contents } = req.body;
+    
+    const newComment = new CommentEn();
+    newComment.contents = contents;
+    newComment.post_id = postId;
+
+    const result = await commentService.createComment(newComment, req.user.id);
+    res.status(201).json(result);
+  });
+
+  router.put("/api/comments/:comment_id", MeddlewareNeedLogin, async (req, res) => {
+    if (!req.user) {
+      return res.status(401).send("Unauthorized");
+    }
+    const commentId = parseInt(req.params.comment_id, 10);
+    const { contents } = req.body;
+
+    const comment = await commentService.getCommentById(commentId);
+    if (!comment || comment.writer.id !== req.user.id) {
+        return res.status(403).send("수정 권한이 없습니다.");
+    }
+
+    const result = await commentService.updateComment(commentId, contents);
+    res.json(result);
+  });
+
+  router.delete("/api/comments/:comment_id", MeddlewareNeedLogin, async (req, res) => {
+    if (!req.user) {
+      return res.status(401).send("Unauthorized");
+    }
+    const commentId = parseInt(req.params.comment_id, 10);
+    
+    const comment = await commentService.getCommentById(commentId);
+    if (!comment || comment.writer.id !== req.user.id) {
+        return res.status(403).send("삭제 권한이 없습니다.");
+    }
+      
+    await commentService.deleteComment(commentId);
+    res.status(204).send();
   });
 
   return router;

@@ -53,6 +53,7 @@ class PostOrmRepo {
         postEn.post_type = postEntity.post_type as PostType;
         postEn.createdAt = postEntity.createdAt;
         postEn.updatedAt = postEntity.updatedAt;
+        postEn.comment_count = postEntity.postComments ? postEntity.postComments.length : 0;
 
         if (postEntity.writer) {
             const writerEn = new UserEn();
@@ -81,10 +82,12 @@ class PostOrmRepo {
     }
 
     async getAllPosts(): Promise<PostEn[]> {
-        const postEntities = await this.postRepo.find({
-            relations: ["writer"],
-            order: { createdAt: "DESC" }
-        });
+        // Using QueryBuilder to efficiently get the comment count
+        const postEntities = await this.postRepo.createQueryBuilder("post")
+            .leftJoinAndSelect("post.writer", "writer")
+            .loadRelationCountAndMap("post.comment_count", "post.postComments")
+            .orderBy("post.createdAt", "DESC")
+            .getMany();
 
         return postEntities.map(postEntity => {
             const postEn = new PostEn();
@@ -92,6 +95,7 @@ class PostOrmRepo {
             postEn.title = postEntity.title;
             postEn.post_type = postEntity.post_type as PostType;
             postEn.createdAt = postEntity.createdAt;
+            postEn.comment_count = (postEntity as any).comment_count;
             if (postEntity.writer) {
                 const writerEn = new UserEn();
                 writerEn.id = postEntity.writer.id;
