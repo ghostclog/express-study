@@ -1,0 +1,115 @@
+<%- include('common/header', { user: typeof user !== 'undefined' ? user : null, title: mode === 'edit' ? '게시글 수정' : '새 글 작성' }) %>
+
+<%
+    const isEditMode = mode === 'edit';
+    const formAction = isEditMode ? `/post/api/posts/${post.id}` : '/post/api/posts';
+    const formMethod = isEditMode ? 'PUT' : 'POST';
+    const postData = (isEditMode && post) ? post : { title: '', contents: '', post_type: 'common' };
+    
+    // 사용자에게 보여줄 텍스트와 실제 값 매핑
+    const postTypeOptions = {
+        'common': '일반',
+        'video_share': '영상 공유'
+    };
+%>
+
+<div class="card">
+    <div class="card-body">
+        <h1 class="mb-4"><%= isEditMode ? '게시글 수정' : '새 글 작성' %></h1>
+
+        <form id="post-form">
+            <div class="mb-3">
+                <label for="title" class="form-label">제목</label>
+                <input type="text" class="form-control" id="title" name="title" value="<%= postData.title %>" required>
+            </div>
+
+            <div class="mb-3">
+                <label for="post_type" class="form-label">게시글 종류</label>
+                <select class="form-select" id="post_type" name="post_type">
+                    <% for (const [value, text] of Object.entries(postTypeOptions)) { %>
+                        <option value="<%= value %>" <%= postData.post_type === value ? 'selected' : '' %>>
+                            <%= text %>
+                        </option>
+                    <% } %>
+                </select>
+            </div>
+
+            <div class="mb-3" id="video-upload-section" style="display: none;">
+                <label for="videoFile" class="form-label">영상 파일</label>
+                <input type="file" class="form-control" id="videoFile" name="videoFile" accept="video/*">
+                <% if (isEditMode && post && post.video) { %>
+                    <div class="form-text">현재 영상: <%= post.video.original_name %></div>
+                <% } %>
+            </div>
+
+            <div class="mb-3">
+                <label for="contents" class="form-label">내용</label>
+                <textarea class="form-control" id="contents" name="contents" rows="10" required><%= postData.contents %></textarea>
+            </div>
+
+            <div class="d-flex justify-content-end">
+                <a href="/post/posts" class="btn btn-secondary me-2">취소</a>
+                <button type="submit" class="btn btn-primary"><%= isEditMode ? '수정하기' : '작성하기' %></button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<script>
+    document.addEventListener('DOMContentLoaded', () => {
+        const postTypeSelect = document.getElementById('post_type');
+        const videoUploadSection = document.getElementById('video-upload-section');
+
+        function toggleVideoUpload() {
+            if (postTypeSelect.value === 'video_share') {
+                videoUploadSection.style.display = 'block';
+            } else {
+                videoUploadSection.style.display = 'none';
+            }
+        }
+
+        // 페이지 로드 시 초기 상태 설정
+        toggleVideoUpload();
+
+        // select 변경 시 상태 업데이트
+        postTypeSelect.addEventListener('change', toggleVideoUpload);
+    });
+
+    document.getElementById('post-form').addEventListener('submit', async (e) => {
+        e.preventDefault();
+        
+        // 중요: 현재는 파일 업로드 로직을 포함하지 않고 폼 데이터만 전송합니다.
+        // 실제 파일 업로드는 추후 백엔드 구현이 필요합니다.
+        const form = e.target;
+        const formData = new FormData(form);
+        const data = Object.fromEntries(formData.entries());
+        delete data.videoFile; // 임시로 파일 데이터는 전송에서 제외
+
+        try {
+            const response = await fetch('<%= formAction %>', {
+                method: '<%= formMethod %>',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify(data),
+            });
+
+            if (response.ok) {
+                const result = await response.json();
+                if (data.post_type === 'video_share' && '<%= formMethod %>' === 'POST') {
+                    window.location.href = `/post/posts/${result.id}/upload`;
+                } else {
+                    window.location.href = `/post/posts/${result.id}`;
+                }
+            } else {
+                const error = await response.text();
+                alert('오류가 발생했습니다: ' + error);
+            }
+        } catch (error) {
+            console.error('Form submission error:', error);
+            alert('요청 처리 중 오류가 발생했습니다.');
+        }
+    });
+</script>
+
+<%- include('common/footer') %>

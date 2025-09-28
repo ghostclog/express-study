@@ -1,0 +1,63 @@
+<%- include('common/header', { user: typeof user !== 'undefined' ? user : null, title: '게시글 목록' }) %>
+
+<div class="card">
+    <div class="card-body">
+        <h1 class="mb-4">게시글 목록</h1>
+        <table class="table table-hover">
+            <thead>
+                <tr>
+                    <th>ID</th>
+                    <th>제목</th>
+                    <th>작성자</th>
+                    <th>타입</th>
+                    <th>댓글 수</th>
+                    <th>작성일</th>
+                </tr>
+            </thead>
+            <tbody id="post-list">
+                <!-- 데이터가 여기에 동적으로 삽입됩니다. -->
+            </tbody>
+        </table>
+        <br>
+        <a href="/post/posts/new" class="btn btn-primary float-end">새 글 작성</a>
+    </div>
+</div>
+
+<script>
+    const postTypeDisplayNames = <%- JSON.stringify(postTypeDisplayNames) %>;
+
+    document.addEventListener('DOMContentLoaded', function() {
+        fetch('/post/api/posts')
+            .then(response => response.json())
+            .then(posts => {
+                const postListBody = document.getElementById('post-list');
+                if (posts.length === 0) {
+                    postListBody.innerHTML = '<tr><td colspan="6" class="text-center">게시글이 없습니다.</td></tr>';
+                    return;
+                }
+                posts.forEach(post => {
+                    const row = document.createElement('tr');
+                    row.style.cursor = 'pointer';
+                    row.onclick = () => {
+                        window.location.href = `/post/posts/${post.id}`;
+                    };
+                    
+                    const createdAt = post.createdAt ? new Date(post.createdAt).toLocaleDateString('ko-KR') : '-';
+                    const displayPostType = postTypeDisplayNames[post.post_type] || post.post_type;
+
+                    row.innerHTML = `
+                        <td>${post.id}</td>
+                        <td>${post.title}</td>
+                        <td>${post.writer ? post.writer.name : 'N/A'}</td>
+                        <td>${displayPostType}</td>
+                        <td>${post.comment_count}</td>
+                        <td>${createdAt}</td>
+                    `;
+                    postListBody.appendChild(row);
+                });
+            })
+            .catch(error => console.error('Error fetching posts:', error));
+    });
+</script>
+
+<%- include('common/footer') %>

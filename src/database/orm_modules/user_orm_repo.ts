@@ -7,6 +7,23 @@ class UserOrmRepo {
     private userRepo = AppDataSource.getRepository(User);
     private userProfileRepo = AppDataSource.getRepository(UserProfile);
 
+    private toUserEn(user_entity: User): UserEn {
+        const userEn = new UserEn();
+        userEn.id = user_entity.id;
+        userEn.email = user_entity.email;
+        userEn.password = user_entity.password;
+        userEn.name = user_entity.name ?? "";
+        userEn.createdAt = user_entity.createdAt;
+        userEn.count_post = user_entity.posts ? user_entity.posts.length : 0;
+        userEn.count_comment = user_entity.postComments ? user_entity.postComments.length : 0;
+        let user_profile = user_entity.profile;
+        if (user_profile) {
+            userEn.comment = user_profile.comment;
+            userEn.profile_image = user_profile.profile_image;
+        }
+        return userEn;
+    }
+
     //C
     async createUser(user:UserEn){
         const userEntity = this.userRepo.create({
@@ -29,20 +46,7 @@ class UserOrmRepo {
         });
         if (!user_entity) return null;
 
-        const userEn = new UserEn();
-        userEn.id = user_entity.id;
-        userEn.email = user_entity.email;
-        userEn.password = user_entity.password;
-        userEn.name = user_entity.name ?? "";
-        userEn.createdAt = user_entity.createdAt;
-        userEn.count_post = user_entity.posts ? user_entity.posts.length : 0;
-        userEn.count_comment = user_entity.postComments ? user_entity.postComments.length : 0;
-        let user_profile = user_entity.profile;
-        if (user_profile) {
-            userEn.comment = user_profile.comment;
-            userEn.profile_image = user_profile.profile_image;
-        }
-        return userEn;
+        return this.toUserEn(user_entity);
     }
 
     async getUserByEmail(email: string): Promise<UserEn | null> {
@@ -52,20 +56,7 @@ class UserOrmRepo {
         });
         if (!user_entity) return null;
 
-        const userEn = new UserEn();
-        userEn.id = user_entity.id;
-        userEn.email = user_entity.email;
-        userEn.password = user_entity.password;
-        userEn.name = user_entity.name ?? "";
-        userEn.createdAt = user_entity.createdAt;
-        userEn.count_post = user_entity.posts ? user_entity.posts.length : 0;
-        userEn.count_comment = user_entity.postComments ? user_entity.postComments.length : 0;
-        let user_profile = user_entity.profile;
-        if (user_profile) {
-            userEn.comment = user_profile.comment;
-            userEn.profile_image = user_profile.profile_image;
-        }
-        return userEn;
+        return this.toUserEn(user_entity);
     }
 
     //U

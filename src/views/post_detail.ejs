@@ -1,0 +1,201 @@
+<%- include('common/header', { user: typeof user !== 'undefined' ? user : null, title: post ? post.title : '게시글' }) %>
+
+<div class="card">
+    <% if (post) { %>
+        <div class="post-header">
+            <h1><%= post.title %></h1>
+            <div class="post-meta">
+                <span>작성자: <%= post.writer ? post.writer.name : 'N/A' %></span> |
+                <span>작성일: <%= post.createdAt ? new Date(post.createdAt).toLocaleString('ko-KR') : '-' %></span> |
+                <span>타입: <%= postTypeDisplayNames[post.post_type] || post.post_type %></span>
+            </div>
+        </div>
+        <div class="post-content">
+            <%- post.contents.replace(/\\n/g, '<br>') %>
+
+            <% if (post.post_type === 'video_share' && post.video) { %>
+                <div class="mt-4">
+                    <video class="video-js" controls preload="auto" poster="/static/img/default-poster.jpg" data-setup="{}" style="width: 100%; height: auto;">
+                        <source src="/<%= post.video.file_path.replace(/\\/g, '/') %>" type="<%= post.video.mimetype %>">
+                        브라우저가 비디오 태그를 지원하지 않습니다.
+                    </video>
+                </div>
+            <% } %>
+        </div>
+    <% } else { %>
+        <div class="card-body">
+            <h1 class="text-center">게시글을 찾을 수 없습니다.</h1>
+        </div>
+    <% } %>
+</div>
+
+<!-- Comment Section -->
+<div class="card mt-4">
+    <div class="card-body">
+        <h3 class="mb-4">댓글 (<span id="comment-count"><%= post ? post.comment_count : 0 %></span>)</h3>
+        
+        <!-- New Comment Form -->
+        <% if (user) { %>
+            <form id="comment-form" class="mb-4">
+                <div class="mb-3">
+                    <textarea class="form-control" id="comment-contents" rows="3" placeholder="댓글을 입력하세요..." required></textarea>
+                </div>
+                <div class="text-end">
+                    <button type="submit" class="btn btn-primary">댓글 작성</button>
+                </div>
+            </form>
+        <% } else { %>
+            <p class="text-center"><a href="/users/login">로그인</a> 후 댓글을 작성할 수 있습니다.</p>
+        <% } %>
+
+        <!-- Comment List -->
+        <div id="comment-list">
+            <!-- Comments will be dynamically loaded here -->
+        </div>
+    </div>
+</div>
+
+
+<div class="mt-4 d-flex justify-content-between">
+    <a href="/post/posts" class="btn btn-secondary">목록으로 돌아가기</a>
+    <div>
+        <% if (user && post && post.writer && user.id === post.writer.id) { %>
+            <a href="/post/posts/<%= post.id %>/edit" class="btn btn-primary me-2">게시글 수정</a>
+        <% } %>
+        <% if (user && post && post.writer && user.id === post.writer.id && post.post_type === 'video_share') { %>
+            <a href="/post/posts/<%= post.id %>/upload" class="btn btn-info">
+                <%= post.video ? '영상 수정' : '영상 업로드' %>
+            </a>
+        <% } %>
+    </div>
+</div>
+
+<script id="user-data" type="application/json"><%- JSON.stringify(user || null) %></script>
+<script>
+document.addEventListener('DOMContentLoaded', () => {
+    const postId = '<%= post ? post.id : "" %>';
+    const commentList = document.getElementById('comment-list');
+    const commentCountSpan = document.getElementById('comment-count');
+    const commentForm = document.getElementById('comment-form');
+    const currentUser = JSON.parse(document.getElementById('user-data').textContent || 'null');
+
+    async function fetchComments() {
+        if (!postId) return;
+        try {
+            const response = await fetch(`/post/api/posts/${postId}/comments`);
+            const comments = await response.json();
+            
+            commentCountSpan.textContent = comments.length;
+            commentList.innerHTML = ''; // Clear list before rendering
+
+            if (comments.length === 0) {
+                commentList.innerHTML = '<p class="text-center text-muted">아직 댓글이 없습니다.</p>';
+            } else {
+                comments.forEach(comment => {
+                    const commentEl = document.createElement('div');
+                    commentEl.className = 'border-bottom pb-3 mb-3';
+                    commentEl.id = `comment-${comment.id}`;
+                    
+                    const isAuthor = currentUser && comment.writer && currentUser.id === comment.writer.id;
+
+                    commentEl.innerHTML = `
+                        <div class="d-flex justify-content-between align-items-center">
+                            <strong>${comment.writer ? comment.writer.name : 'N/A'}</strong>
+                            <small class="text-muted">${new Date(comment.createdAt).toLocaleString('ko-KR')}</small>
+                        </div>
+                        <p class="mt-2 mb-2">${comment.contents.replace(/\\n/g, '<br>')}</p>
+                        ${isAuthor ? `
+                        <div class="text-end">
+                            <button class="btn btn-sm btn-outline-secondary" onclick="editComment(${comment.id})">수정</button>
+                            <button class="btn btn-sm btn-outline-danger" onclick="deleteComment(${comment.id})">삭제</button>
+                        </div>
+                        ` : ''}
+                    `;
+                    commentList.appendChild(commentEl);
+                });
+            }
+        } catch (error) {
+            console.error('Error fetching comments:', error);
+            commentList.innerHTML = '<p class="text-danger text-center">댓글을 불러오는 중 오류가 발생했습니다.</p>';
+        }
+    }
+
+    if (commentForm) {
+        commentForm.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const contents = document.getElementById('comment-contents').value;
+            if (!contents.trim()) return;
+
+            try {
+                const response = await fetch(`/post/api/posts/${postId}/comments`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ contents }),
+                });
+
+                if (response.ok) {
+                    document.getElementById('comment-contents').value = '';
+                    fetchComments(); // Refresh comment list
+                } else {
+                    alert('댓글 작성에 실패했습니다.');
+                }
+            } catch (error) {
+                console.error('Error posting comment:', error);
+                alert('댓글 작성 중 오류가 발생했습니다.');
+            }
+        });
+    }
+
+    // Initial load
+    fetchComments();
+});
+
+// Edit and Delete functions need to be global for inline onclick
+async function editComment(commentId) {
+    const newContents = prompt("수정할 댓글 내용을 입력하세요:");
+    if (newContents === null || !newContents.trim()) return;
+
+    try {
+        const response = await fetch(`/post/api/comments/${commentId}`, {
+            method: 'PUT',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ contents: newContents }),
+        });
+        if (response.ok) {
+            // No need to call fetchComments() as the list will be refreshed by the user action
+            const updatedComment = await response.json();
+            document.getElementById(`comment-${commentId}`).querySelector('p').innerHTML = updatedComment.contents.replace(/\\n/g, '<br>');
+
+        } else {
+            alert('댓글 수정에 실패했습니다.');
+        }
+    } catch (error) {
+        console.error('Error updating comment:', error);
+        alert('댓글 수정 중 오류가 발생했습니다.');
+    }
+}
+
+
+async function deleteComment(commentId) {
+    if (!confirm('정말로 이 댓글을 삭제하시겠습니까?')) return;
+
+    try {
+        const response = await fetch(`/post/api/comments/${commentId}`, {
+            method: 'DELETE',
+        });
+        if (response.ok) {
+            document.getElementById(`comment-${commentId}`).remove();
+            const countSpan = document.getElementById('comment-count');
+            countSpan.textContent = parseInt(countSpan.textContent) - 1;
+        } else {
+            alert('댓글 삭제에 실패했습니다.');
+        }
+    } catch (error) {
+        console.error('Error deleting comment:', error);
+        alert('댓글 삭제 중 오류가 발생했습니다.');
+    }
+}
+</script>
+
+
+<%- include('common/footer') %>

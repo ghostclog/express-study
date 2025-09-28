@@ -3,6 +3,7 @@
     "target": "ES2022",                     // 최신 JS 기능 사용
     "module": "commonjs",                   // NodeJS 환경
     "moduleResolution": "node",
+    "typeRoots": ["./node_modules/@types", "./src/types"],
     "esModuleInterop": true,
     "allowSyntheticDefaultImports": true,
     "strict": true,                          // TS strict 모드
