@@ -1,0 +1,17 @@
+<%- include('common/header', { user: typeof user !== 'undefined' ? user : null, title: '홈' }) %>
+
+<div class="p-5 mb-4 bg-white rounded-3 shadow">
+    <div class="container-fluid py-5">
+        <% if (typeof user !== 'undefined' && user) { %>
+            <h1 class="display-5 fw-bold">돌아오신 것을 환영합니다!</h1>
+            <p class="col-md-8 fs-4">다시 만나서 반갑습니다, <%= user.name %>님. 새로운 기능들을 확인해보세요.</p>
+        <% } else { %>
+            <h1 class="display-5 fw-bold">저희 웹사이트에 오신 것을 환영합니다</h1>
+            <p class="col-md-8 fs-4">로그인하고 더 많은 기능을 이용해보세요.</p>
+            <a href="/users/login" class="btn btn-primary btn-lg">로그인</a>
+            <a href="/users/regist" class="btn btn-lg">회원가입</a>
+        <% } %>
+    </div>
+</div>
+
+<%- include('common/footer') %>
