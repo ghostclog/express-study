@@ -1,0 +1,77 @@
+<%- include('common/header', { user: typeof user !== 'undefined' ? user : null, title: '영상 함께보기' }) %>
+<link href="https://vjs.zencdn.net/7.17.0/video-js.css" rel="stylesheet" />
+
+<div class="card">
+    <div class="card-body">
+        <h1 class="mb-4">영상 함께보기: <%= post.title %></h1>
+        <p>이 링크를 친구에게 공유하여 함께보세요: <a href="<%= new URL(req.originalUrl, req.protocol + '://' + req.get('host')) %>"><%= new URL(req.originalUrl, req.protocol + '://' + req.get('host')) %></a></p>
+        
+        <% if (post.video) { %>
+            <video id="shared-video" class="video-js vjs-default-skin vjs-big-play-centered" controls preload="auto" width="100%" height="auto" data-setup="{}">
+                <source src="/<%= post.video.file_path.replace(/\\/g, '/') %>" type="<%= post.video.mimetype %>">
+                브라우저가 비디오 태그를 지원하지 않습니다.
+            </video>
+        <% } else { %>
+            <p class="text-center">재생할 영상이 없습니다.</p>
+        <% } %>
+
+        <div class="mt-3">
+            <strong>현재 상태:</strong> <span id="status-text"><%= isHost ? '당신은 방장입니다. 영상을 제어하여 다른 사람들과 공유하세요.' : '방장이 영상을 제어할 때까지 기다려주세요.' %></span>
+        </div>
+    </div>
+</div>
+
+<script src="/socket.io/socket.io.js"></script>
+<script src="https://vjs.zencdn.net/7.17.0/video.min.js"></script>
+<script>
+    document.addEventListener('DOMContentLoaded', () => {
+        const isHost = <%- JSON.stringify(isHost) %>;
+        const roomId = '<%= post.id %>';
+        const player = videojs('shared-video');
+        
+        const socket = io();
+        socket.emit('join_room', roomId);
+
+        if (isHost) {
+            player.controls(true);
+
+            const sendControl = (type, currentTime) => {
+                socket.emit('host_control', {
+                    roomId: roomId,
+                    type: type,
+                    currentTime: currentTime
+                });
+            };
+
+            player.on('play', () => sendControl('play', player.currentTime()));
+            player.on('pause', () => sendControl('pause', player.currentTime()));
+            player.on('seeked', () => sendControl('seek', player.currentTime()));
+
+        } else {
+            player.controls(false); // Guests cannot control the video
+
+            socket.on('sync_control', (data) => {
+                const { type, currentTime } = data;
+                
+                // To prevent event loops, we check if the state is already correct
+                const smallTimeDiff = Math.abs(player.currentTime() - currentTime);
+
+                switch (type) {
+                    case 'play':
+                        if (player.paused()) player.play();
+                        break;
+                    case 'pause':
+                        if (!player.paused()) player.pause();
+                        break;
+                    case 'seek':
+                        if (smallTimeDiff > 1) { // Only seek if time difference is significant
+                           player.currentTime(currentTime);
+                        }
+                        break;
+                }
+            });
+        }
+    });
+</script>
+
+<%- include('common/footer') %>

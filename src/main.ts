@@ -3,9 +3,12 @@ import session from "express-session";
 import passport from "passport";
 import path from "path";
 import flash from "connect-flash";
+import http from 'http';
+import { Server } from 'socket.io';
 
 import { AppDataSource } from "./database/setting/config"
 import {passport_strategy} from "./settings/security"
+import initializeSocket from './socket_handler';
 
 import { createUserRouter } from "./adapter/user_route";
 import { createStreamRouter } from "./adapter/stream_router";
@@ -17,6 +20,8 @@ import CommentServiceClass from "./application/CommentService";
 import VideoService from './application/VideoService';
 
 const app = express();
+const server = http.createServer(app);
+const io = new Server(server);
 const port = 3000;
 
 
@@ -60,6 +65,9 @@ const post_service = new PostServiceClass()
 const comment_service = new CommentServiceClass()
 const video_service = new VideoService();
 
+// ---------- Socket.IO 설정 ----------
+initializeSocket(io);
+
 // ---------- 라우터 연결 ----------
 const main_router = Router();
 main_router.get("/",(req,res)=>{
@@ -72,7 +80,7 @@ app.use("/post", createPostRouter(post_service, comment_service, video_service))
 // app.use("/products", productRouter);                 // 인증 선택적
 
 // ---------- 서버 시작 ----------
-app.listen(port, () => {
+server.listen(port, () => {
   console.log(`Server running on http://localhost:${port}`);
 });
 

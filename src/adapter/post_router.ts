@@ -50,6 +50,20 @@ export function createPostRouter(postService: PostService, commentService: Comme
     });
   });
 
+  router.get('/watch/:post_id', MeddlewareNeedLogin, async (req, res) => {
+    const postId = parseInt(req.params.post_id, 10);
+    const post = await postService.getPostById(postId);
+
+    if (!post || post.post_type !== 'video_share' || !post.video) {
+        return res.status(404).send("영상을 찾을 수 없거나 공유 가능한 영상이 아닙니다.");
+    }
+    
+    // Check if the current user is the author
+    const isHost = req.user && post.writer && req.user.id === post.writer.id;
+
+    res.render('watch_room', { post, isHost });
+  });
+
   // 2. API 라우트 (JSON 반환)
   router.get("/api/posts", async (req, res) => {
     const result = await postService.getAllPosts();

@@ -63,9 +63,10 @@
             <a href="/post/posts/<%= post.id %>/edit" class="btn btn-primary me-2">게시글 수정</a>
         <% } %>
         <% if (user && post && post.writer && user.id === post.writer.id && post.post_type === 'video_share') { %>
-            <a href="/post/posts/<%= post.id %>/upload" class="btn btn-info">
+            <a href="/post/posts/<%= post.id %>/upload" class="btn btn-info me-2">
                 <%= post.video ? '영상 수정' : '영상 업로드' %>
             </a>
+            <a href="/post/watch/<%= post.id %>" class="btn btn-success">실시간 송출하기</a>
         <% } %>
     </div>
 </div>
