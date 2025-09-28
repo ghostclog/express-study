@@ -1,6 +1,8 @@
-import { Entity, PrimaryGeneratedColumn, Column, OneToMany, ManyToOne, JoinColumn, CreateDateColumn, UpdateDateColumn } from "typeorm";
+import { Entity, PrimaryGeneratedColumn, Column, OneToMany, ManyToOne, JoinColumn, CreateDateColumn, UpdateDateColumn, OneToOne } from "typeorm";
+import { Video } from "./Video";
 import { User } from "./user";
 import { PostComment } from "./PostComment";
+
 
 @Entity()
 export class Post {
@@ -9,9 +11,6 @@ export class Post {
 
   @Column()
   title!: string;
-
-  @Column()
-  mp4_url!: string;
 
   @Column()
   contents!: string;
@@ -32,4 +31,10 @@ export class Post {
   @ManyToOne(() => User, (user) => user.posts, { nullable: true })
   @JoinColumn()
   writer?: User;
+
+  @OneToOne(() => Video, video => video.post, {
+    nullable: true,
+    cascade: true,
+  })
+  video?: Video;
 }

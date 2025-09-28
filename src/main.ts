@@ -14,6 +14,7 @@ import { createPostRouter } from "./adapter/post_router";
 import PostServiceClass from "./application/PostService";
 import UserServiceClass from "./application/UserService";
 import CommentServiceClass from "./application/CommentService";
+import VideoService from './application/VideoService';
 
 const app = express();
 const port = 3000;
@@ -28,6 +29,7 @@ app.set("views", "./src/views");
 // ---------- 공통 미들웨어 ----------
 // '/static' URL 경로를 'src/static' 실제 폴더에 연결합니다.
 app.use('/static', express.static(path.join(__dirname, 'static')));
+app.use('/uploads', express.static('uploads'));
 app.use(express.json()); // JSON Body 파싱
 app.use(express.urlencoded({ extended: true })); // Form data 파싱
 // app.use(loggerMiddleware); // 로깅 미들웨어
@@ -56,6 +58,7 @@ app.use((req, res, next) => {
 const user_service = new UserServiceClass()
 const post_service = new PostServiceClass()
 const comment_service = new CommentServiceClass()
+const video_service = new VideoService();
 
 // ---------- 라우터 연결 ----------
 const main_router = Router();
@@ -65,7 +68,7 @@ main_router.get("/",(req,res)=>{
 app.use("/",main_router);
 app.use("/users", createUserRouter(user_service));       // 인증 필요
 app.use("/stream", createStreamRouter());
-app.use("/post", createPostRouter(post_service, comment_service));
+app.use("/post", createPostRouter(post_service, comment_service, video_service));
 // app.use("/products", productRouter);                 // 인증 선택적
 
 // ---------- 서버 시작 ----------

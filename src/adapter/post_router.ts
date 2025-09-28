@@ -3,10 +3,12 @@ import passport from "passport";
 
 import PostService from "../application/PostService";
 import CommentService from "../application/CommentService";
+import VideoService from "../application/VideoService";
 import { MeddlewareNeedLogin } from "../settings/security";
 import { PostEn, PostType, CommentEn } from "../domain/Post";
+import upload from "../settings/multer_config";
 
-export function createPostRouter(postService: PostService, commentService: CommentService) {
+export function createPostRouter(postService: PostService, commentService: CommentService, videoService: VideoService) {
   const router = Router();
 
   const postTypeDisplayNames = {
@@ -31,6 +33,16 @@ export function createPostRouter(postService: PostService, commentService: Comme
     const postId = parseInt(req.params.post_id, 10);
     const post = await postService.getPostById(postId);
     res.render("post_detail", { post: post, postTypeDisplayNames });
+  });
+
+  router.get("/posts/:post_id/upload", MeddlewareNeedLogin, async (req, res) => {
+    const postId = parseInt(req.params.post_id, 10);
+    const post = await postService.getPostById(postId);
+
+    if (!post || (req.user && post.writer && req.user.id !== post.writer.id)) {
+      return res.status(403).send("업로드 권한이 없습니다.");
+    }
+    res.render("video_upload_form", { post });
   });
 
   router.get("/posts/:post_id/edit", MeddlewareNeedLogin, async (req, res) => {
@@ -62,6 +74,27 @@ export function createPostRouter(postService: PostService, commentService: Comme
     const writerId = req.user.id;
     const result = await postService.createPost(post, writerId);
     res.status(201).json(result);
+  });
+
+  router.post("/api/posts/:post_id/upload", MeddlewareNeedLogin, upload.single('video'), async (req, res) => {
+    const postId = parseInt(req.params.post_id, 10);
+
+    const post = await postService.getPostById(postId);
+    if (!post || (req.user && post.writer && req.user.id !== post.writer.id)) {
+        return res.status(403).send("업로드 권한이 없습니다.");
+    }
+
+    if (!req.file) {
+      return res.status(400).send("영상 파일이 필요합니다.");
+    }
+
+    try {
+      await videoService.saveVideo(req.file, postId);
+      res.status(200).json({ message: "영상 업로드 성공" });
+    } catch (error) {
+      console.error(error);
+      res.status(500).send("영상 업로드 중 오류가 발생했습니다.");
+    }
   });
 
   router.put("/api/posts/:post_id", MeddlewareNeedLogin, async (req, res) => {

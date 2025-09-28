@@ -1,5 +1,6 @@
 import PostOrmRepo from '../database/orm_modules/post_orm_repo';
 import { PostEn, CommentEn } from './../domain/Post';
+import { Video } from '../database/setting/tables/Video';
 
 const postRepo = new PostOrmRepo();
 

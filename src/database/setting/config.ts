@@ -6,11 +6,15 @@ import { DataSource } from "typeorm";
 export { User } from "./tables/user";
 export { Post } from "./tables/Post";
 export { PostComment } from "./tables/PostComment";
+export { Video } from "./tables/Video";
+export { UserProfile } from "./tables/UserProfile";
 
-import { User } from "./config";
+import { User } from "./tables/user";
 import { UserProfile } from "./tables/UserProfile";
-import { Post } from "./config";
-import { PostComment } from "./config";
+import { Post } from "./tables/Post";
+import { PostComment } from "./tables/PostComment";
+import { Video } from "./tables/Video";
+
 
 // ---------- DB 연결 (선택) ----------
 export const AppDataSource = new DataSource({
@@ -18,7 +22,7 @@ export const AppDataSource = new DataSource({
   database: "database.sqlite",
   synchronize: true,
   logging: false,
-  entities: [User, UserProfile,Post,PostComment],
+  entities: [User, UserProfile,Post,PostComment, Video],
   migrations: [],
   subscribers: [],
 });

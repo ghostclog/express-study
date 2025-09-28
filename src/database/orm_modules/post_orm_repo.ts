@@ -15,7 +15,6 @@ class PostOrmRepo {
         }
         const newPostEntity = this.postRepo.create({
             title: post.title,
-            mp4_url: post.mp4_url,
             contents: post.contents,
             post_type: post.post_type,
             writer: writer
@@ -25,7 +24,6 @@ class PostOrmRepo {
         const newPostEn = new PostEn();
         newPostEn.id = newPostEntity.id;
         newPostEn.title = newPostEntity.title;
-        newPostEn.mp4_url = newPostEntity.mp4_url;
         newPostEn.contents = newPostEntity.contents;
         newPostEn.post_type = newPostEntity.post_type as PostType;
         if (newPostEntity.writer) {
@@ -41,19 +39,19 @@ class PostOrmRepo {
     async getPostById(id: number): Promise<PostEn | null> {
         const postEntity = await this.postRepo.findOne({
             where: { id },
-            relations: ["writer", "postComments", "postComments.writer"],
+            relations: ["writer", "postComments", "postComments.writer", "video"],
         });
         if (!postEntity) return null;
 
         const postEn = new PostEn();
         postEn.id = postEntity.id;
         postEn.title = postEntity.title;
-        postEn.mp4_url = postEntity.mp4_url;
         postEn.contents = postEntity.contents;
         postEn.post_type = postEntity.post_type as PostType;
         postEn.createdAt = postEntity.createdAt;
         postEn.updatedAt = postEntity.updatedAt;
         postEn.comment_count = postEntity.postComments ? postEntity.postComments.length : 0;
+        postEn.video = postEntity.video;
 
         if (postEntity.writer) {
             const writerEn = new UserEn();
@@ -85,6 +83,7 @@ class PostOrmRepo {
         // Using QueryBuilder to efficiently get the comment count
         const postEntities = await this.postRepo.createQueryBuilder("post")
             .leftJoinAndSelect("post.writer", "writer")
+            .leftJoinAndSelect("post.video", "video")
             .loadRelationCountAndMap("post.comment_count", "post.postComments")
             .orderBy("post.createdAt", "DESC")
             .getMany();

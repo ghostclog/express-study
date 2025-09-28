@@ -13,10 +13,10 @@
         <div class="post-content">
             <%- post.contents.replace(/\\n/g, '<br>') %>
 
-            <% if (post.mp4_url) { %>
+            <% if (post.post_type === 'video_share' && post.video) { %>
                 <div class="mt-4">
-                    <video class="video-js" controls preload="auto" poster="/static/img/default-poster.jpg" data-setup="{}">
-                        <source src="<%= post.mp4_url %>" type="video/mp4">
+                    <video class="video-js" controls preload="auto" poster="/static/img/default-poster.jpg" data-setup="{}" style="width: 100%; height: auto;">
+                        <source src="/<%= post.video.file_path.replace(/\\/g, '/') %>" type="<%= post.video.mimetype %>">
                         브라우저가 비디오 태그를 지원하지 않습니다.
                     </video>
                 </div>
@@ -58,18 +58,26 @@
 
 <div class="mt-4 d-flex justify-content-between">
     <a href="/post/posts" class="btn btn-secondary">목록으로 돌아가기</a>
-    <% if (user && post && post.writer && user.id === post.writer.id) { %>
-        <a href="/post/posts/<%= post.id %>/edit" class="btn btn-primary">수정하기</a>
-    <% } %>
+    <div>
+        <% if (user && post && post.writer && user.id === post.writer.id) { %>
+            <a href="/post/posts/<%= post.id %>/edit" class="btn btn-primary me-2">게시글 수정</a>
+        <% } %>
+        <% if (user && post && post.writer && user.id === post.writer.id && post.post_type === 'video_share') { %>
+            <a href="/post/posts/<%= post.id %>/upload" class="btn btn-info">
+                <%= post.video ? '영상 수정' : '영상 업로드' %>
+            </a>
+        <% } %>
+    </div>
 </div>
 
+<script id="user-data" type="application/json"><%- JSON.stringify(user || null) %></script>
 <script>
 document.addEventListener('DOMContentLoaded', () => {
     const postId = '<%= post ? post.id : "" %>';
     const commentList = document.getElementById('comment-list');
     const commentCountSpan = document.getElementById('comment-count');
     const commentForm = document.getElementById('comment-form');
-    const currentUser = <%- JSON.stringify(user || null) %>;
+    const currentUser = JSON.parse(document.getElementById('user-data').textContent || 'null');
 
     async function fetchComments() {
         if (!postId) return;

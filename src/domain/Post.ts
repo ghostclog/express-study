@@ -1,9 +1,10 @@
 import { UserEn } from "./User";
+import { Video } from "../database/setting/tables/Video";
 
 export enum PostType {
   COMMON = "common",
   CLIP = "clip",
-  VIDEO_SHARE = "vedio_share",
+  VIDEO_SHARE = "video_share",
 }
 
 export class CommentEn {
@@ -16,7 +17,6 @@ export class CommentEn {
 export class PostEn  {
   id!: number;
   title!: string;
-  mp4_url!: string;
   contents!: string;
   post_type!: PostType;
   comments!: CommentEn[];
@@ -24,5 +24,6 @@ export class PostEn  {
   createdAt?: Date;
   updatedAt?: Date;
   comment_count?: number;
+  video?: Video;
 }
 
