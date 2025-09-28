@@ -35,16 +35,6 @@ export function createPostRouter(postService: PostService, commentService: Comme
     res.render("post_detail", { post: post, postTypeDisplayNames });
   });
 
-  router.get("/posts/:post_id/upload", MeddlewareNeedLogin, async (req, res) => {
-    const postId = parseInt(req.params.post_id, 10);
-    const post = await postService.getPostById(postId);
-
-    if (!post || (req.user && post.writer && req.user.id !== post.writer.id)) {
-      return res.status(403).send("업로드 권한이 없습니다.");
-    }
-    res.render("video_upload_form", { post });
-  });
-
   router.get("/posts/:post_id/edit", MeddlewareNeedLogin, async (req, res) => {
     const postId = parseInt(req.params.post_id, 10);
     const post = await postService.getPostById(postId);
