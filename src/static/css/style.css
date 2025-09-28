@@ -34,3 +34,8 @@ a {
 a:hover {
     color: var(--brand-primary);
 }
+/* 비디오 플레이어 스타일 (선택 사항) */
+.video-js {
+    width: 100%; /* 부모 요소에 맞게 조정 */
+    height: auto;
+}
