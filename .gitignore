@@ -23,7 +23,7 @@ out/
 Thumbs.db
 .vscode/
 .idea/
-
+*.mp4
 # Logs
 logs/
 *.log
