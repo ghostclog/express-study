@@ -61,7 +61,9 @@ export function createPostRouter(postService: PostService, commentService: Comme
     // Check if the current user is the author
     const isHost = req.user && post.writer && req.user.id === post.writer.id;
 
-    res.render('watch_room', { post, isHost });
+    const watchUrl = `${req.protocol}://${req.get('host')}${req.originalUrl}`;
+
+    res.render('watch_room', { post, isHost, watchUrl, user: req.user });
   });
 
   // 2. API 라우트 (JSON 반환)
