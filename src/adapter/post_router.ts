@@ -7,6 +7,7 @@ import VideoService from "../application/VideoService";
 import { MeddlewareNeedLogin } from "../settings/security";
 import { PostEn, PostType, CommentEn } from "../domain/Post";
 import upload from "../settings/multer_config";
+import { checkOwnership, loadPost, loadComment } from "./middleware";
 
 export function createPostRouter(postService: PostService, commentService: CommentService, videoService: VideoService) {
   const router = Router();
@@ -29,32 +30,22 @@ export function createPostRouter(postService: PostService, commentService: Comme
     });
   });
 
-  router.get("/posts/:post_id", async (req, res) => {
-    const postId = parseInt(req.params.post_id, 10);
-    const post = await postService.getPostById(postId);
-    res.render("post_detail", { post: post, postTypeDisplayNames });
+  router.get("/posts/:post_id", loadPost(postService), async (req, res) => {
+    res.render("post_detail", { post: req.post, postTypeDisplayNames });
   });
 
-  router.get("/posts/:post_id/edit", MeddlewareNeedLogin, async (req, res) => {
-    const postId = parseInt(req.params.post_id, 10);
-    const post = await postService.getPostById(postId);
-    
-    if (!post || (req.user && post.writer && req.user.id !== post.writer.id)) {
-        return res.status(403).send("수정 권한이 없습니다.");
-    }
-      
+  router.get("/posts/:post_id/edit", MeddlewareNeedLogin, loadPost(postService), checkOwnership('post'), async (req, res) => {
     res.render("post_form", {
         mode: 'edit',
-        post: post,
+        post: req.post,
         postTypes: PostType
     });
   });
 
-  router.get('/watch/:post_id', MeddlewareNeedLogin, async (req, res) => {
-    const postId = parseInt(req.params.post_id, 10);
-    const post = await postService.getPostById(postId);
+  router.get('/watch/:post_id', MeddlewareNeedLogin, loadPost(postService), async (req, res) => {
+    const post = req.post!;
 
-    if (!post || post.post_type !== 'video_share' || !post.video) {
+    if (post.post_type !== 'video_share' || !post.video) {
         return res.status(404).send("영상을 찾을 수 없거나 공유 가능한 영상이 아닙니다.");
     }
     
@@ -82,13 +73,8 @@ export function createPostRouter(postService: PostService, commentService: Comme
     res.status(201).json(result);
   });
 
-  router.post("/api/posts/:post_id/upload", MeddlewareNeedLogin, upload.single('video'), async (req, res) => {
-    const postId = parseInt(req.params.post_id, 10);
-
-    const post = await postService.getPostById(postId);
-    if (!post || (req.user && post.writer && req.user.id !== post.writer.id)) {
-        return res.status(403).send("업로드 권한이 없습니다.");
-    }
+  router.post("/api/posts/:post_id/upload", MeddlewareNeedLogin, loadPost(postService), checkOwnership('post'), upload.single('video'), async (req, res) => {
+    const postId = req.post!.id;
 
     if (!req.file) {
       return res.status(400).send("영상 파일이 필요합니다.");
@@ -103,16 +89,10 @@ export function createPostRouter(postService: PostService, commentService: Comme
     }
   });
 
-  router.put("/api/posts/:post_id", MeddlewareNeedLogin, async (req, res) => {
-    const postId = parseInt(req.params.post_id, 10);
+  router.put("/api/posts/:post_id", MeddlewareNeedLogin, loadPost(postService), checkOwnership('post'), async (req, res) => {
+    const postId = req.post!.id;
     const postData: Partial<PostEn> = req.body;
     
-    // Check ownership before updating
-    const post = await postService.getPostById(postId);
-    if (!post || (req.user && post.writer && req.user.id !== post.writer.id)) {
-        return res.status(403).send("수정 권한이 없습니다.");
-    }
-
     const result = await postService.updatePost(postId, postData);
     res.json(result);
   });
@@ -139,32 +119,16 @@ export function createPostRouter(postService: PostService, commentService: Comme
     res.status(201).json(result);
   });
 
-  router.put("/api/comments/:comment_id", MeddlewareNeedLogin, async (req, res) => {
-    if (!req.user) {
-      return res.status(401).send("Unauthorized");
-    }
-    const commentId = parseInt(req.params.comment_id, 10);
+  router.put("/api/comments/:comment_id", MeddlewareNeedLogin, loadComment(commentService), checkOwnership('comment'), async (req, res) => {
+    const commentId = req.comment!.id;
     const { contents } = req.body;
-
-    const comment = await commentService.getCommentById(commentId);
-    if (!comment || comment.writer.id !== req.user.id) {
-        return res.status(403).send("수정 권한이 없습니다.");
-    }
 
     const result = await commentService.updateComment(commentId, contents);
     res.json(result);
   });
 
-  router.delete("/api/comments/:comment_id", MeddlewareNeedLogin, async (req, res) => {
-    if (!req.user) {
-      return res.status(401).send("Unauthorized");
-    }
-    const commentId = parseInt(req.params.comment_id, 10);
-    
-    const comment = await commentService.getCommentById(commentId);
-    if (!comment || comment.writer.id !== req.user.id) {
-        return res.status(403).send("삭제 권한이 없습니다.");
-    }
+  router.delete("/api/comments/:comment_id", MeddlewareNeedLogin, loadComment(commentService), checkOwnership('comment'), async (req, res) => {
+    const commentId = req.comment!.id;
       
     await commentService.deleteComment(commentId);
     res.status(204).send();
