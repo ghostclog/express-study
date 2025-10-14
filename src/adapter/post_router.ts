@@ -30,11 +30,11 @@ export function createPostRouter(postService: PostService, commentService: Comme
     });
   });
 
-  router.get("/posts/:post_id", loadPost(postService), async (req, res) => {
+  router.get("/posts/:post_id", loadPost(), async (req, res) => {
     res.render("post_detail", { post: req.post, postTypeDisplayNames });
   });
 
-  router.get("/posts/:post_id/edit", MeddlewareNeedLogin, loadPost(postService), checkOwnership('post'), async (req, res) => {
+  router.get("/posts/:post_id/edit", MeddlewareNeedLogin, loadPost(), checkOwnership(req => req.post?.writer), async (req, res) => {
     res.render("post_form", {
         mode: 'edit',
         post: req.post,
@@ -42,7 +42,7 @@ export function createPostRouter(postService: PostService, commentService: Comme
     });
   });
 
-  router.get('/watch/:post_id', MeddlewareNeedLogin, loadPost(postService), async (req, res) => {
+  router.get('/watch/:post_id', MeddlewareNeedLogin, loadPost(), async (req, res) => {
     const post = req.post!;
 
     if (post.post_type !== 'video_share' || !post.video) {
@@ -73,7 +73,7 @@ export function createPostRouter(postService: PostService, commentService: Comme
     res.status(201).json(result);
   });
 
-  router.post("/api/posts/:post_id/upload", MeddlewareNeedLogin, loadPost(postService), checkOwnership('post'), upload.single('video'), async (req, res) => {
+  router.post("/api/posts/:post_id/upload", MeddlewareNeedLogin, loadPost(), checkOwnership(req => req.post?.writer), upload.single('video'), async (req, res) => {
     const postId = req.post!.id;
 
     if (!req.file) {
@@ -89,7 +89,7 @@ export function createPostRouter(postService: PostService, commentService: Comme
     }
   });
 
-  router.put("/api/posts/:post_id", MeddlewareNeedLogin, loadPost(postService), checkOwnership('post'), async (req, res) => {
+  router.put("/api/posts/:post_id", MeddlewareNeedLogin, loadPost(), checkOwnership(req => req.post?.writer), async (req, res) => {
     const postId = req.post!.id;
     const postData: Partial<PostEn> = req.body;
     
@@ -119,7 +119,7 @@ export function createPostRouter(postService: PostService, commentService: Comme
     res.status(201).json(result);
   });
 
-  router.put("/api/comments/:comment_id", MeddlewareNeedLogin, loadComment(commentService), checkOwnership('comment'), async (req, res) => {
+  router.put("/api/comments/:comment_id", MeddlewareNeedLogin, loadComment(), checkOwnership(req => req.comment?.writer), async (req, res) => {
     const commentId = req.comment!.id;
     const { contents } = req.body;
 
@@ -127,7 +127,7 @@ export function createPostRouter(postService: PostService, commentService: Comme
     res.json(result);
   });
 
-  router.delete("/api/comments/:comment_id", MeddlewareNeedLogin, loadComment(commentService), checkOwnership('comment'), async (req, res) => {
+  router.delete("/api/comments/:comment_id", MeddlewareNeedLogin, loadComment(), checkOwnership(req => req.comment?.writer), async (req, res) => {
     const commentId = req.comment!.id;
       
     await commentService.deleteComment(commentId);

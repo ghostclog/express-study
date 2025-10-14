@@ -21,10 +21,19 @@ interface Ownable {
 }
 
 /**
+ * 소유자 정보를 req 객체에서 추출하는 함수의 타입 별칭
+ * @param req Express의 Request 객체
+ * @returns 엔티티의 writer 객체 또는 undefined
+ */
+export type OwnerExtractor = (req: Request) => Ownable['writer'] | undefined;
+
+
+/**
  * post_id 파라미터에서 Post 엔티티를 로드하여 req.post에 attach하는 미들웨어
  */
-export const loadPost = (postService: PostService) => {
+export const loadPost = () => {
   return async (req: Request, res: Response, next: NextFunction) => {
+    const postService = new PostService(); // 서비스 직접 생성
     try {
       const postId = parseInt(req.params.post_id, 10);
       
@@ -50,8 +59,9 @@ export const loadPost = (postService: PostService) => {
 /**
  * comment_id 파라미터에서 Comment 엔티티를 로드하여 req.comment에 attach하는 미들웨어
  */
-export const loadComment = (commentService: CommentService) => {
+export const loadComment = () => {
   return async (req: Request, res: Response, next: NextFunction) => {
+    const commentService = new CommentService(); // 서비스 직접 생성
     try {
       const commentId = parseInt(req.params.comment_id, 10);
       
@@ -76,9 +86,9 @@ export const loadComment = (commentService: CommentService) => {
 
 /**
  * req에 attach된 엔티티의 소유권을 확인하는 미들웨어
- * @param entityKey req 객체에서 확인할 엔티티의 키 (예: 'post', 'comment')
+ * @param getOwner req 객체에서 엔티티 소유자를 반환하는 함수
  */
-export const checkOwnership = (entityKey: 'post' | 'comment') => {
+export const checkOwnership = (getOwner: OwnerExtractor) => {
   return async (req: Request, res: Response, next: NextFunction) => {
     // Passport를 통해 req.user가 설정되었는지 확인
     if (!req.user) {
@@ -86,15 +96,12 @@ export const checkOwnership = (entityKey: 'post' | 'comment') => {
     }
 
     try {
-      const entity = req[entityKey] as Ownable | undefined;
-
-      if (!entity) {
-        return res.status(404).send("요청한 항목을 찾을 수 없습니다.");
-      }
-      
+      const owner = getOwner(req);
       const userId = (req.user as any).id;
-
-      if (!entity.writer || entity.writer.id !== userId) {
+      
+      // loadPost/loadComment가 먼저 실행되므로 엔티티 자체는 존재한다고 가정.
+      // owner가 없거나 (writer가 null/undefined) ID가 일치하지 않으면 권한 없음.
+      if (!owner || owner.id !== userId) {
         return res.status(403).send("작업을 수행할 권한이 없습니다.");
       }
 
