@@ -1,6 +1,6 @@
 import { Entity, PrimaryGeneratedColumn, Column, OneToMany, ManyToOne, JoinColumn, CreateDateColumn, UpdateDateColumn, OneToOne } from "typeorm";
 import { Video } from "./Video";
-import { User } from "./user";
+import { User } from "./User";
 import { PostComment } from "./PostComment";
 
 

@@ -9,6 +9,10 @@
     "strict": true,                          // TS strict 모드
     "experimentalDecorators": true,          // 데코레이터 허용
     "emitDecoratorMetadata": true,           // 데코레이터 메타데이터 생성
-    "useDefineForClassFields": false         // TypeORM 데코레이터 호환
-  }
+    "useDefineForClassFields": false,         // TypeORM 데코레이터 호환
+    "outDir": "./dist",
+    "rootDir": "./src"
+  },
+  "include": ["src/**/*"],
+  "exclude": ["node_modules"]
 }

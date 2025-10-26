@@ -3,13 +3,13 @@ import { DataSource } from "typeorm";
 // import productRouter from "./routes/product";
 // import { authMiddleware } from "./middlewares/auth"; // 커스텀 미들웨어 예시
 // import { loggerMiddleware } from "./middlewares/logger";
-export { User } from "./tables/user";
+export { User } from "./tables/User";
 export { Post } from "./tables/Post";
 export { PostComment } from "./tables/PostComment";
 export { Video } from "./tables/Video";
 export { UserProfile } from "./tables/UserProfile";
 
-import { User } from "./tables/user";
+import { User } from "./tables/User";
 import { UserProfile } from "./tables/UserProfile";
 import { Post } from "./tables/Post";
 import { PostComment } from "./tables/PostComment";

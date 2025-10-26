@@ -4,7 +4,7 @@ npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
 pnpm-debug.log*
-package-lock.json
+# package-lock.json # 팀원들과 의존성 버전 통일을 위해 주석 처리 또는 삭제를 권장합니다.
 yarn.lock
 pnpm-lock.yaml
 
@@ -12,6 +12,9 @@ pnpm-lock.yaml
 dist/
 build/
 out/
+
+# 테스트 관련
+coverage/
 
 # 환경 변수 & 설정 파일
 .env
@@ -29,3 +32,5 @@ logs/
 *.log
 *.log.*
 database.sqlite
+uploads/
+media/
