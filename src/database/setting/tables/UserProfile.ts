@@ -12,7 +12,7 @@ export class UserProfile {
   @Column({ nullable: true })
   profile_image?: string;
 
-  @Column({ type: "datetime" })
+  @UpdateDateColumn()
   updatedAt!: Date;
 
   @OneToOne(() => User, (user) => user.profile)

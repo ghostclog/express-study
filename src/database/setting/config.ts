@@ -25,7 +25,7 @@ export const AppDataSource = new DataSource({
   username: process.env.DB_USERNAME,
   password: process.env.DB_PASSWORD,
   database: process.env.DB_DATABASE,
-  synchronize: false, // 프로덕션에서는 항상 false! 마이그레이션을 사용합니다.
+  synchronize: true, // 개발 환경에서는 true로 설정하여 자동 스키마 동기화를 사용합니다.
   logging: process.env.NODE_ENV === 'development', // 개발 환경에서만 로깅 활성화
   entities: [User, UserProfile, Post, PostComment, Video],
   migrations: ["src/database/migrations/*.ts"], // 마이그레이션 파일 경로

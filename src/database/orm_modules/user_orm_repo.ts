@@ -29,9 +29,7 @@ class UserOrmRepo {
         const userEntity = this.userRepo.create({
             email: user.email,
             password: user.password,
-            name: user.name,
-            createdAt:user.createdAt,
-            updatedAt:user.updatedAt
+            name: user.name
         });
 
         // DB에 저장

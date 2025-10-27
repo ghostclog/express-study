@@ -1,4 +1,4 @@
-import { Entity, PrimaryGeneratedColumn, Column, OneToMany, OneToOne } from "typeorm";
+import { Entity, PrimaryGeneratedColumn, Column, OneToMany, OneToOne, CreateDateColumn, UpdateDateColumn } from "typeorm";
 import { PostComment } from "./PostComment";
 import { Post } from "./Post";
 import { UserProfile } from "./UserProfile";
@@ -17,10 +17,10 @@ export class User {
   @Column({ nullable: true })
   name?: string;
 
-  @Column({ type: "datetime" })
+  @CreateDateColumn()
   createdAt!: Date;
 
-  @Column({ type: "datetime" })
+  @UpdateDateColumn()
   updatedAt!: Date;
 
   @OneToMany(() => Post, (post) => post.writer, { nullable: true })
