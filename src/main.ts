@@ -5,6 +5,7 @@ import path from "path";
 import flash from "connect-flash";
 import http from 'http';
 import { Server } from 'socket.io';
+import "./media-server/mediaConfig";
 
 import { AppDataSource } from "./database/setting/config"
 import {passport_strategy} from "./settings/security"
