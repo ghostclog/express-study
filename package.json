@@ -4,9 +4,12 @@
   "description": "",
   "main": "index.js",
   "scripts": {
+    "start": "node dist/main.js",
     "build": "tsc",
     "dev": "ts-node-dev --respawn --transpile-only src/main.ts",
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "typeorm": "typeorm-ts-node-commonjs",
+    "migration:run": "npm run typeorm migration:run -- -d ./dist/database/setting/config.js"
   },
   "repository": {
     "type": "git",
@@ -22,6 +25,7 @@
   "dependencies": {
     "bcrypt": "^6.0.0",
     "connect-flash": "^0.1.1",
+    "dotenv": "^16.4.5",
     "ejs": "^3.1.10",
     "express": "^5.1.0",
     "express-session": "^1.18.2",
@@ -31,6 +35,7 @@
     "passport-github2": "^0.1.12",
     "passport-google-oauth20": "^2.0.0",
     "passport-local": "^1.0.0",
+    "pg": "^8.12.0",
     "reflect-metadata": "^0.2.2",
     "socket.io": "^4.8.1",
     "sqlite3": "^5.1.7",
