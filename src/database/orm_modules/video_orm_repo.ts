@@ -33,6 +33,13 @@ class VideoOrmRepo {
         const savedVideo = await videoRepo.save(newVideo);
         return savedVideo;
     }
+
+    async getVideoByPostId(postId: number): Promise<Video | null> {
+        const video = await videoRepo.findOne({
+            where: { post: { id: postId } }
+        });
+        return video;
+    }
 }
 
 export default VideoOrmRepo;

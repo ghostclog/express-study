@@ -36,6 +36,15 @@ export default function initializeSocket(io: Server) {
             io.to(data.roomId).emit('sync_control', data);
         });
 
+        socket.on('send_message', ({ message }: { message: string }) => {
+            if (currentRoomId && rooms[currentRoomId] && rooms[currentRoomId].has(socket.id)) {
+                const user = rooms[currentRoomId].get(socket.id);
+                if (user) {
+                    io.to(currentRoomId).emit('new_message', { userName: user.name, message });
+                }
+            }
+        });
+
         socket.on('disconnect', () => {
             console.log('user disconnected:', socket.id);
             if (currentRoomId && rooms[currentRoomId]) {

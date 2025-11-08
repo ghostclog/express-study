@@ -97,6 +97,23 @@ export function createPostRouter(postService: PostService, commentService: Comme
     res.json(result);
   });
 
+  router.post("/api/posts/:post_id/clips", MeddlewareNeedLogin, loadPost(), async (req, res) => {
+    const postId = req.post!.id;
+    const { title, startTime, endTime } = req.body;
+
+    if (!title || startTime === undefined || endTime === undefined) {
+      return res.status(400).send("Title, startTime, and endTime are required.");
+    }
+
+    try {
+      const clipPath = await videoService.createClip(postId, startTime, endTime, title);
+      res.status(201).json({ message: "Clip created successfully", clipPath });
+    } catch (error) {
+      console.error("Failed to create clip:", error);
+      res.status(500).send("Failed to create clip.");
+    }
+  });
+
   // 3. Comment API Routes
   router.get("/api/posts/:post_id/comments", async (req, res) => {
     const postId = parseInt(req.params.post_id, 10);
