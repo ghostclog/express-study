@@ -11,6 +11,8 @@ RUN apt-get update && apt-get install -y ffmpeg
 
 COPY . .
 
+RUN npm run build
+
 EXPOSE 3000
 
 CMD [ "npm", "start" ]
