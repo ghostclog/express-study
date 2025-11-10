@@ -112,6 +112,7 @@ export function createPostRouter(postService: PostService, commentService: Comme
       console.error("Failed to create clip:", error);
       res.status(500).send("Failed to create clip.");
     }
+  });
   router.delete("/api/posts/:post_id", MeddlewareNeedLogin, loadPost(), checkOwnership(req => req.post?.writer), async (req, res) => {
     const postId = req.post!.id;
     await postService.deletePost(postId);
