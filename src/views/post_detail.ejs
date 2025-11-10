@@ -61,6 +61,7 @@
     <div>
         <% if (user && post && post.writer && user.id === post.writer.id) { %>
             <a href="/post/posts/<%= post.id %>/edit" class="btn btn-primary me-2">게시글 수정</a>
+            <button class="btn btn-danger" onclick="deletePost()">게시글 삭제</button>
         <% } %>
         <% if (user && post && post.writer && user.id === post.writer.id && post.post_type === 'video_share') { %>
             <a href="/post/posts/<%= post.id %>/upload" class="btn btn-info me-2">
@@ -194,6 +195,29 @@ async function deleteComment(commentId) {
     } catch (error) {
         console.error('Error deleting comment:', error);
         alert('댓글 삭제 중 오류가 발생했습니다.');
+    }
+}
+
+async function deletePost() {
+    const postId = '<%= post ? post.id : "" %>';
+    if (!postId) return;
+    
+    if (confirm('정말로 이 게시글을 삭제하시겠습니까?')) {
+        try {
+            const response = await fetch(`/post/api/posts/${postId}`, {
+                method: 'DELETE'
+            });
+
+            if (response.ok) {
+                alert('게시글이 성공적으로 삭제되었습니다.');
+                window.location.href = '/post/posts';
+            } else {
+                alert('게시글 삭제에 실패했습니다.');
+            }
+        } catch (error) {
+            console.error('Error deleting post:', error);
+            alert('게시글 삭제 중 오류가 발생했습니다.');
+        }
     }
 }
 </script>

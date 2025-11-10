@@ -97,6 +97,12 @@ export function createPostRouter(postService: PostService, commentService: Comme
     res.json(result);
   });
 
+  router.delete("/api/posts/:post_id", MeddlewareNeedLogin, loadPost(), checkOwnership(req => req.post?.writer), async (req, res) => {
+    const postId = req.post!.id;
+    await postService.deletePost(postId);
+    res.status(204).send();
+  });
+
   // 3. Comment API Routes
   router.get("/api/posts/:post_id/comments", async (req, res) => {
     const postId = parseInt(req.params.post_id, 10);
