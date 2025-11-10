@@ -24,6 +24,11 @@ class PostServiceClass {
         const result = await postRepo.updatePost(postId, postData);
         return result;
     }
+
+    async deletePost(postId: number){
+        const result = await postRepo.deletePost(postId);
+        return result;
+    }
 }
 
 export default PostServiceClass;
