@@ -23,7 +23,7 @@ services:
       - "1935:1935"
     volumes:
       - ./nginx.conf:/etc/nginx/conf.d/default.conf
-      - ./src/static:/usr/src/app/static # CSS 파일을 위해 추가
+      - ./src/static:/var/www/static # CSS 파일을 위해 추가
       - media_volume:/opt/data/media
     depends_on:
       - app
