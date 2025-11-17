@@ -38,6 +38,34 @@ export function createUserRouter(userService: UserService) {
     })
   );
 
+  router.get("/admin", MeddlewareNeedLogin, async (req, res) => {
+    if (req.user && req.user.permission_level > 0) {
+      const reports = await userService.getAllReports();
+      res.render("admin", { user: req.user, reports: reports });
+    } else {
+      res.status(403).send("접근 권한이 없습니다.");
+    }
+  });
+
+  router.post("/users/ban/:user_id", MeddlewareNeedLogin, async (req, res, next) => {
+    try {
+      if (!req.user || req.user.permission_level <= 0) {
+        return res.status(403).send("접근 권한이 없습니다.");
+      }
+      const userIdToBan = parseInt(req.params.user_id, 10);
+      const { ban_duration_days } = req.body;
+
+      if (!ban_duration_days || isNaN(parseInt(ban_duration_days, 10))) {
+        return res.status(400).send("제재 기간을 정확히 입력해주세요.");
+      }
+
+      await userService.banUser(userIdToBan, parseInt(ban_duration_days, 10));
+      res.status(200).json({ message: `사용자(ID: ${userIdToBan})가 ${ban_duration_days}일간 제재되었습니다.` });
+    } catch (error) {
+      next(error);
+    }
+  });
+
   router.post("/logout", MeddlewareNeedLogin, (req, res, next) => {
     req.logout((err) => {
       if (err) return next(err);

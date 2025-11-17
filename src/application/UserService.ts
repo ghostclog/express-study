@@ -49,6 +49,16 @@ class UserServiceClass {
         await userRepo.createUserReport(userReport);
 
     }
+
+    async getAllReports(): Promise<UserReport[]> {
+        return await userRepo.getAllReports();
+    }
+
+    async banUser(userId: number, banDurationDays: number): Promise<void> {
+        const bannedUntil = new Date();
+        bannedUntil.setDate(bannedUntil.getDate() + banDurationDays);
+        await userRepo.updateUserBan(userId, bannedUntil);
+    }
 }
 
 

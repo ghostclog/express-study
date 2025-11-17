@@ -70,7 +70,14 @@ class UserOrmRepo {
         return this.toUserEn(user_entity);
     }
 
+    async getAllReports(): Promise<UserReport[]> {
+        return this.userReportRepo.find();
+    }
+
     //U
+    async updateUserBan(userId: number, bannedUntil: Date): Promise<void> {
+        await this.userRepo.update(userId, { banned_at: bannedUntil });
+    }
 
     //D
 

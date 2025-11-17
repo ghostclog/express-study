@@ -26,6 +26,12 @@ export class User {
   @Column({ nullable: true })
   user_account_status?: 'active' | 'inactive' | 'banned';
 
+  @Column({ type: 'int', default: 0 })
+  permission_level!: number;
+
+  @Column({ type: 'timestamp', nullable: true })
+  banned_at?: Date;
+
   @OneToMany(() => Post, (post) => post.writer, { nullable: true })
   posts?: Post[];
 

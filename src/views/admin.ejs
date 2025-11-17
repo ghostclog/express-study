@@ -1,0 +1,111 @@
+<%- include('common/header', { user: user }) %>
+
+<div class="container mt-5">
+  <h1>관리자 페이지 - 사용자 신고 목록</h1>
+  <table class="table table-hover">
+    <thead>
+      <tr>
+        <th scope="col">#</th>
+        <th scope="col">신고 접수 시간</th>
+        <th scope="col">신고자 ID</th>
+        <th scope="col">신고된 사용자 ID</th>
+        <th scope="col">신고 내용</th>
+        <th scope="col">조치</th>
+      </tr>
+    </thead>
+    <tbody>
+      <% reports.forEach(function(report, index) { %>
+        <tr>
+          <th scope="row"><%= report.id %></th>
+          <td><%= new Date(report.createdAt).toLocaleString() %></td>
+          <td><%= report.reporter_id %></td>
+          <td><%= report.reported_user_id %></td>
+          <td><%= report.report_text %></td>
+          <td>
+            <button type="button" class="btn btn-danger" data-bs-toggle="modal" data-bs-target="#banUserModal" data-user-id="<%= report.reported_user_id %>">
+              사용자 제재
+            </button>
+          </td>
+        </tr>
+      <% }); %>
+    </tbody>
+  </table>
+</div>
+
+<!-- 제재 모달 -->
+<div class="modal fade" id="banUserModal" tabindex="-1" aria-labelledby="banUserModalLabel" aria-hidden="true">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="banUserModalLabel">사용자 제재</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <div class="modal-body">
+        <form id="banUserForm">
+          <div class="mb-3">
+            <label for="ban-duration" class="col-form-label">제재 기간 (일):</label>
+            <input type="number" class="form-control" id="ban-duration" name="ban_duration_days" min="1" required>
+          </div>
+          <input type="hidden" id="user-id-to-ban" name="user_id">
+        </form>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">닫기</button>
+        <button type="button" class="btn btn-primary" id="submitBan">제재하기</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+  const banUserModal = document.getElementById('banUserModal');
+  banUserModal.addEventListener('show.bs.modal', function (event) {
+    const button = event.relatedTarget;
+    const userId = button.getAttribute('data-user-id');
+    const modalTitle = banUserModal.querySelector('.modal-title');
+    const userIdInput = banUserModal.querySelector('#user-id-to-ban');
+
+    modalTitle.textContent = `사용자 (ID: ${userId}) 제재`;
+    userIdInput.value = userId;
+  });
+
+  const submitBanButton = document.getElementById('submitBan');
+  submitBanButton.addEventListener('click', function () {
+    const userId = document.getElementById('user-id-to-ban').value;
+    const banDuration = document.getElementById('ban-duration').value;
+
+    if (!banDuration || parseInt(banDuration, 10) <= 0) {
+      alert('제재 기간을 1일 이상으로 입력해주세요.');
+      return;
+    }
+
+    fetch(`/users/ban/${userId}`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        ban_duration_days: banDuration
+      })
+    })
+    .then(response => {
+        if (!response.ok) {
+            return response.text().then(text => { throw new Error(text) });
+        }
+        return response.json();
+    })
+    .then(data => {
+      alert(data.message);
+      location.reload();
+    })
+    .catch((error) => {
+      console.error('Error:', error);
+      alert('오류가 발생했습니다: ' + error.message);
+    });
+  });
+});
+</script>
+
+<%- include('common/footer') %>
