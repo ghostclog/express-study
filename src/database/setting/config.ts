@@ -9,6 +9,7 @@ export { Post } from "./tables/Post";
 export { PostComment } from "./tables/PostComment";
 export { Video } from "./tables/Video";
 export { UserProfile } from "./tables/UserProfile";
+export { UserReport } from './tables/UserETC';
 
 import { User } from "./tables/User";
 import { UserProfile } from "./tables/UserProfile";
@@ -27,7 +28,7 @@ export const AppDataSource = new DataSource({
   database: process.env.DB_DATABASE,
   synchronize: true, // 개발 환경에서는 true로 설정하여 자동 스키마 동기화를 사용합니다.
   logging: process.env.NODE_ENV === 'development', // 개발 환경에서만 로깅 활성화
-  entities: [User, UserProfile, Post, PostComment, Video],
+  entities: [User, UserProfile, Post, PostComment, Video, UserReport],
   migrations: ["src/database/migrations/*.ts"], // 마이그레이션 파일 경로
   subscribers: [],
 });

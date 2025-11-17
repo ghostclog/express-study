@@ -5,8 +5,8 @@ import { Video } from '../database/setting/tables/Video';
 const postRepo = new PostOrmRepo();
 
 class PostServiceClass {
-    async createPost(post:PostEn, writerId: number){
-        const result = await postRepo.createPost(post, writerId);
+    async createPost(post:PostEn, writerId: number, videoId?: number){
+        const result = await postRepo.createPost(post, writerId, videoId);
         return result;
     }
 

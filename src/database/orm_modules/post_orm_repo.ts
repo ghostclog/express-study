@@ -1,4 +1,4 @@
-import { AppDataSource, PostComment, Post, User } from "./../setting/config";
+import { AppDataSource, PostComment, Post, User, Video } from "./../setting/config";
 import { PostEn, CommentEn, PostType } from './../../domain/Post';
 import { UserEn } from './../../domain/User';
 
@@ -8,17 +8,27 @@ class PostOrmRepo {
     private userRepo = AppDataSource.getRepository(User);
 
     // Post CRUD
-    async createPost(post: PostEn, writerId: number): Promise<PostEn> {
+    async createPost(post: PostEn, writerId: number, videoId?: number): Promise<PostEn> {
         const writer = await this.userRepo.findOneBy({ id: writerId });
         if (!writer) {
             throw new Error("User not found");
         }
-        const newPostEntity = this.postRepo.create({
+        
+        const postData: Partial<Post> = {
             title: post.title,
             contents: post.contents,
             post_type: post.post_type,
-            writer: writer
-        });
+            writer: writer,
+        };
+
+        if (videoId) {
+            const video = await AppDataSource.getRepository(Video).findOneBy({ id: videoId });
+            if (video) {
+                postData.video = video;
+            }
+        }
+        
+        const newPostEntity = this.postRepo.create(postData);
         await this.postRepo.save(newPostEntity);
 
         const newPostEn = new PostEn();

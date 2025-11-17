@@ -13,10 +13,10 @@ export const passport_strategy =new LocalStrategy(
     },
     async (email, password, done) => {
       const user = await userService.getUserByEmail(email); // 이 메서드 추가 필요
-      if (!user) return done(null, false, { message: "email is not exist" });
-      if (!user.password) return done(null, false, { message: "user data error" });
+      if (!user) return done(null, false, { message: "계정이 존재하지 않습니다." });
+      if (!user.password) return done(null, false, { message: "유저 정보에 에러가 존재합니다. 고객센터로 문의를 남겨주세요." });
       const isValid = await bcrypt.compare(password, user.password);
-      if (!isValid) return done(null, false, { message: "Wrong password" });
+      if (!isValid) return done(null, false, { message: "비밀번호가 일치하지 않습니다. 다시 입력해주세요." });
       return done(null, user);
     }
   )

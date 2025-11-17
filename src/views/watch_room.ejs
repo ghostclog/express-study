@@ -1,5 +1,24 @@
 <%- include('common/header', { user: typeof user !== 'undefined' ? user : null, title: '영상 함께보기' }) %>
 <link href="https://vjs.zencdn.net/7.17.0/video-js.css" rel="stylesheet" />
+<style>
+    .chat-message-item {
+        position: relative;
+        padding-right: 55px; /* 공간 확보 */
+    }
+    .chat-message-item .report-btn {
+        position: absolute;
+        top: 50%;
+        right: 8px;
+        transform: translateY(-50%);
+        opacity: 0;
+        transition: opacity 0.2s ease-in-out;
+        padding: .1rem .3rem; /* 버튼 크기 축소 */
+        font-size: .75rem;   /* 폰트 크기 축소 */
+    }
+    .chat-message-item:hover .report-btn {
+        opacity: 1;
+    }
+</style>
 
 <div class="container-fluid">
     <div class="row">
@@ -101,6 +120,36 @@
     </div>
 </div>
 
+<!-- Chat Report Modal -->
+<div class="modal fade" id="reportModal" tabindex="-1" aria-labelledby="reportModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <form id="report-form">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="reportModalLabel">사용자 신고하기</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <p><strong>신고 대상:</strong> <span id="reported-username"></span></p>
+                    <div class="mb-3">
+                        <label class="form-label">신고 대상 채팅:</label>
+                        <p class="form-control-plaintext bg-light p-2 rounded" id="reported-chat-message"></p>
+                    </div>
+                    <div class="mb-3">
+                        <label for="report-reason" class="form-label">상세 신고 사유:</label>
+                        <textarea class="form-control" id="report-reason" rows="3" required></textarea>
+                    </div>
+                    <input type="hidden" id="reported-userid" name="reported_user_id">
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">취소</button>
+                    <button type="submit" class="btn btn-danger">신고하기</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
 
 <script id="user-data" type="application/json"><%- JSON.stringify(user || null) %></script>
 <script src="/socket.io/socket.io.js"></script>
@@ -130,6 +179,8 @@
         const chatInput = document.getElementById('chat-input');
         const chatMessages = document.getElementById('chat-messages');
         const chatBox = document.querySelector('.chat-box');
+        const reportModal = new bootstrap.Modal(document.getElementById('reportModal'));
+        const reportForm = document.getElementById('report-form');
 
         // Disable controls for ALL users. Host will use the remote.
         player.controls(false);
@@ -162,7 +213,7 @@
         });
 
         const socket = io();
-        socket.emit('join_room', { roomId, user: { name: currentUser ? currentUser.name : 'Guest' } });
+        socket.emit('join_room', { roomId, user: currentUser ? { id: currentUser.id, name: currentUser.name } : { name: 'Guest' } });
 
         if (isHost) {
             const playBtn = document.getElementById('remote-play');
@@ -243,13 +294,72 @@
             });
         }
 
-        socket.on('new_message', ({ userName, message }) => {
+        socket.on('new_message', ({ userId, userName, message }) => {
             const li = document.createElement('li');
+            li.className = 'list-group-item d-flex justify-content-between align-items-start chat-message-item';
+            
             const sanitizedMessage = message.replace(/</g, "&lt;").replace(/>/g, "&gt;");
-            li.innerHTML = `<strong>${userName}:</strong> ${sanitizedMessage}`;
+            
+            let messageHTML = `<div><strong>${userName}:</strong> ${sanitizedMessage}</div>`;
+
+            // Add report button if the message is not from the current user and the sender is not a guest
+            if (currentUser && userId && currentUser.id !== userId) {
+                messageHTML += `<button class="btn btn-sm btn-outline-danger report-btn" 
+                                    data-userid="${userId}" 
+                                    data-username="${userName}" 
+                                    data-message="${message}">신고</button>`;
+            }
+
+            li.innerHTML = messageHTML;
             chatMessages.appendChild(li);
             if (chatBox) {
                 chatBox.scrollTop = chatBox.scrollHeight;
+            }
+        });
+
+        // Report Logic
+        chatMessages.addEventListener('click', (e) => {
+            if (e.target && e.target.classList.contains('report-btn')) {
+                const button = e.target;
+                const userId = button.dataset.userid;
+                const username = button.dataset.username;
+                const message = button.dataset.message;
+                
+                // Populate modal
+                document.getElementById('reported-username').textContent = username;
+                document.getElementById('reported-chat-message').innerHTML = message.replace(/</g, "&lt;").replace(/>/g, "&gt;");
+                document.getElementById('reported-userid').value = userId;
+                
+                reportModal.show();
+            }
+        });
+
+        reportForm.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const reportedUserId = document.getElementById('reported-userid').value;
+            const reportedMessage = document.getElementById('reported-chat-message').textContent;
+            const reason = document.getElementById('report-reason').value;
+
+            const fullReason = `신고된 채팅: "${reportedMessage}"\n\n신고 사유: ${reason}`;
+
+            try {
+                const response = await fetch(`/users/report/user-chat/${reportedUserId}`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ chat_text: fullReason }),
+                });
+
+                if (response.ok) {
+                    alert('신고가 성공적으로 접수되었습니다.');
+                    reportModal.hide();
+                    reportForm.reset();
+                } else {
+                    const errorText = await response.text();
+                    alert(`신고 실패: ${errorText}`);
+                }
+            } catch (error) {
+                console.error('Error reporting user:', error);
+                alert('신고 처리 중 오류가 발생했습니다.');
             }
         });
 
@@ -290,9 +400,28 @@
 
                         if (response.ok) {
                             const result = await response.json();
-                            alert(`클립이 성공적으로 생성되었습니다! 경로: ${result.clipPath}`);
-                            clipModal.hide();
-                            clipForm.reset();
+                            alert(`클립이 성공적으로 생성되었습니다!`);
+                            
+                            // Create a link to the new post
+                            const postLink = document.createElement('a');
+                            postLink.href = `/post/posts/${result.newPost.id}`;
+                            postLink.textContent = `"${result.newPost.title}" 게시글 바로가기`;
+                            postLink.classList.add('btn', 'btn-success', 'mt-2');
+
+                            // Show the link in the modal footer or somewhere visible
+                            const modalFooter = document.querySelector('#clipModal .modal-footer');
+                            
+                            // Clear previous links if any
+                            const existingLink = modalFooter.querySelector('a');
+                            if (existingLink) {
+                                existingLink.remove();
+                            }
+                            
+                            modalFooter.appendChild(postLink);
+                            
+                            // Optionally, hide the modal after a delay or keep it open for the user to click the link
+                            // clipModal.hide(); 
+                            // clipForm.reset();
                         } else {
                             const errorText = await response.text();
                             alert(`클립 생성 실패: ${errorText}`);

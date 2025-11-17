@@ -106,8 +106,16 @@ export function createPostRouter(postService: PostService, commentService: Comme
     }
 
     try {
-      const clipPath = await videoService.createClip(postId, startTime, endTime, title);
-      res.status(201).json({ message: "Clip created successfully", clipPath });
+      const newVideo = await videoService.createClip(postId, startTime, endTime, title);
+      
+      const newPost = new PostEn();
+      newPost.title = `클립: ${title}`;
+      newPost.contents = `원본 영상 ID: ${postId}`;
+      newPost.post_type = PostType.VIDEO_SHARE;
+      
+      const result = await postService.createPost(newPost, req.user!.id, newVideo.id);
+
+      res.status(201).json({ message: "Clip created successfully", newPost: result });
     } catch (error) {
       console.error("Failed to create clip:", error);
       res.status(500).send("Failed to create clip.");

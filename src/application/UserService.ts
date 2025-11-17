@@ -2,6 +2,7 @@ import bcrypt from "bcrypt";
 
 import UserOrmRepo from '../database/orm_modules/user_orm_repo';
 import { UserEn } from './../domain/User';
+import { UserReport } from "../database/setting/tables/UserETC";
 
 const salt = 10;
 const userRepo = new UserOrmRepo();
@@ -33,6 +34,20 @@ class UserServiceClass {
         await userRepo.createUser(user);
 
         return user;
+    }
+
+    async reportUser(userId: number, reason: string, reporterId: number): Promise<void> {
+        // 비밀번호 해싱
+
+        // 객체 생성
+        const userReport = new UserReport();
+        userReport.report_text = reason;
+        userReport.reported_user_id = userId;
+        userReport.reporter_id = reporterId;
+
+        // DB 저장 같은 게 있다면 여기서
+        await userRepo.createUserReport(userReport);
+
     }
 }
 

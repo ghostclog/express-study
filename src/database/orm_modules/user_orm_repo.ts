@@ -1,12 +1,14 @@
 
 import { UserProfile } from '../setting/tables/UserProfile';
+import { UserReport } from '../setting/tables/UserETC';
 import { UserEn } from './../../domain/User';
 import { AppDataSource, User } from "./../setting/config"; // main에서 import하지 말고 data-source.ts에서 import!
 
 class UserOrmRepo {
     private userRepo = AppDataSource.getRepository(User);
     private userProfileRepo = AppDataSource.getRepository(UserProfile);
-
+    private userReportRepo = AppDataSource.getRepository(UserReport);
+    
     private toUserEn(user_entity: User): UserEn {
         const userEn = new UserEn();
         userEn.id = user_entity.id;
@@ -34,6 +36,17 @@ class UserOrmRepo {
 
         // DB에 저장
         await this.userRepo.save(userEntity);
+    }
+
+    //C
+    async createUserReport(userReport: UserReport): Promise<UserReport> {
+        const userReportEntity = this.userReportRepo.create({
+            report_text: userReport.report_text,
+            reported_user_id: userReport.reported_user_id,
+            reporter_id: userReport.reporter_id
+        });
+        await this.userReportRepo.save(userReportEntity);
+        return userReportEntity;
     }
 
     //R

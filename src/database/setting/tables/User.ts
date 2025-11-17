@@ -23,6 +23,9 @@ export class User {
   @UpdateDateColumn()
   updatedAt!: Date;
 
+  @Column({ nullable: true })
+  user_account_status?: 'active' | 'inactive' | 'banned';
+
   @OneToMany(() => Post, (post) => post.writer, { nullable: true })
   posts?: Post[];
 
