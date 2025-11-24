@@ -77,9 +77,11 @@
                     <form id="chat-form">
                         <div class="input-group">
                             <input type="text" id="chat-input" class="form-control" placeholder="메시지 입력..." autocomplete="off" required>
+                            <button id="emoji-btn" class="btn btn-outline-secondary" type="button">😊</button>
                             <button class="btn btn-primary" type="submit">전송</button>
                         </div>
                     </form>
+                    <emoji-picker class="light" style="position: absolute; bottom: 65px; right: 20px; z-index: 1000; display: none;"></emoji-picker>
                 </div>
             </div>
         </div>
@@ -154,6 +156,7 @@
 <script id="user-data" type="application/json"><%- JSON.stringify(user || null) %></script>
 <script src="/socket.io/socket.io.js"></script>
 <script src="https://vjs.zencdn.net/7.17.0/video.min.js"></script>
+<script type="module" src="https://cdn.jsdelivr.net/npm/emoji-picker-element@^1/index.js"></script>
 <script>
     document.addEventListener('DOMContentLoaded', () => {
         const isHost = <%- JSON.stringify(isHost) %>;
@@ -181,6 +184,8 @@
         const chatBox = document.querySelector('.chat-box');
         const reportModal = new bootstrap.Modal(document.getElementById('reportModal'));
         const reportForm = document.getElementById('report-form');
+        const emojiBtn = document.getElementById('emoji-btn');
+        const emojiPicker = document.querySelector('emoji-picker');
 
         // Disable controls for ALL users. Host will use the remote.
         player.controls(false);
@@ -282,6 +287,23 @@
             }, 100);
         });
 
+        // Emoji Picker Logic
+        emojiBtn.addEventListener('click', (event) => {
+            event.stopPropagation();
+            emojiPicker.style.display = emojiPicker.style.display === 'none' ? 'block' : 'none';
+        });
+
+        emojiPicker.addEventListener('emoji-click', event => {
+            chatInput.value += event.detail.emoji.unicode;
+        });
+
+        // Close emoji picker when clicking outside
+        document.addEventListener('click', (event) => {
+            if (!emojiPicker.contains(event.target) && event.target !== emojiBtn) {
+                emojiPicker.style.display = 'none';
+            }
+        });
+
         // Chat Logic
         if (chatForm) {
             chatForm.addEventListener('submit', e => {
@@ -340,13 +362,11 @@
             const reportedMessage = document.getElementById('reported-chat-message').textContent;
             const reason = document.getElementById('report-reason').value;
 
-            const fullReason = `신고된 채팅: "${reportedMessage}"\n\n신고 사유: ${reason}`;
-
             try {
                 const response = await fetch(`/users/report/user-chat/${reportedUserId}`, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ chat_text: fullReason }),
+                    body: JSON.stringify({ reason: reason, roomId: roomId }),
                 });
 
                 if (response.ok) {

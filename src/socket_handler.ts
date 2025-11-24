@@ -1,4 +1,5 @@
 import { Server, Socket } from 'socket.io';
+import chatCache from './application/ChatCache';
 
 interface ControlPayload {
     roomId: string;
@@ -10,6 +11,13 @@ interface User {
     id: string; // socket.id
     name: string;
     userId?: number; // database user ID
+}
+
+interface ChatMessage {
+    userId?: number;
+    userName: string;
+    message: string;
+    timestamp: number;
 }
 
 const rooms: Record<string, Map<string, User>> = {};
@@ -47,6 +55,22 @@ export default function initializeSocket(io: Server) {
             if (currentRoomId && rooms[currentRoomId] && rooms[currentRoomId].has(socket.id)) {
                 const user = rooms[currentRoomId].get(socket.id);
                 if (user) {
+                    const chatMessage: ChatMessage = {
+                        userId: user.userId,
+                        userName: user.name,
+                        message: message,
+                        timestamp: Date.now()
+                    };
+
+                    // Add to cache
+                    const cachedMessages = chatCache.get<ChatMessage[]>(currentRoomId) || [];
+                    cachedMessages.push(chatMessage);
+                    // Keep only the last 20 messages
+                    if (cachedMessages.length > 20) {
+                        cachedMessages.shift();
+                    }
+                    chatCache.set(currentRoomId, cachedMessages);
+
                     io.to(currentRoomId).emit('new_message', { userId: user.userId, userName: user.name, message });
                 }
             }
