@@ -1,34 +1,68 @@
-import PostOrmRepo from '../database/orm_modules/post_orm_repo';
-import { PostEn, CommentEn } from './../domain/Post';
-import { Video } from '../database/setting/tables/Video';
+import { AppDataSource } from "../database/setting/config";
+import { PostEn, PostType } from "../domain/Post";
+import { Video } from '../domain/Video';
+import { User } from '../domain/User';
+import { PostReport } from "../domain/PostReport";
 
-const postRepo = new PostOrmRepo();
+export default class PostService {
+  private postRepository = AppDataSource.getRepository(PostEn);
+  private userRepository = AppDataSource.getRepository(User);
+  private reportRepository = AppDataSource.getRepository(PostReport);
 
-class PostServiceClass {
-    async createPost(post:PostEn, writerId: number, videoId?: number){
-        const result = await postRepo.createPost(post, writerId, videoId);
-        return result;
+  async getAllPosts() {
+    return this.postRepository.find({ relations: ['writer', 'video'] });
+  }
+
+  async getPostById(id: number) {
+    return this.postRepository.findOne({ where: { id }, relations: ['writer', 'video'] });
+  }
+
+  async createPost(postData: Partial<PostEn>, writerId: number, videoId?: number): Promise<PostEn> {
+    const writer = await this.userRepository.findOneBy({ id: writerId });
+    if (!writer) {
+      throw new Error("Writer not found");
     }
 
-    async getAllPosts(){
-        const result = await postRepo.getAllPosts();
-        return result;
+    const newPost = this.postRepository.create({
+      ...postData,
+      writer: writer,
+    });
+
+    if (videoId) {
+      const videoRepository = AppDataSource.getRepository(Video);
+      const video = await videoRepository.findOneBy({id: videoId});
+      if(video) newPost.video = video;
     }
     
-    async getPostById(postId: number){
-        const result = await postRepo.getPostById(postId);
-        return result;
+    return this.postRepository.save(newPost);
+  }
+
+  async updatePost(id: number, postData: Partial<PostEn>): Promise<PostEn | null> {
+    await this.postRepository.update(id, postData);
+    return this.getPostById(id);
+  }
+
+  async deletePost(id: number): Promise<void> {
+    await this.postRepository.delete(id);
+  }
+
+  async reportPost(postId: number, reason: string, reporterId: number): Promise<PostReport> {
+    const post = await this.getPostById(postId);
+    if (!post) {
+      throw new Error('신고할 게시글을 찾을 수 없습니다.');
     }
 
-    async updatePost(postId: number, postData: Partial<PostEn>){
-        const result = await postRepo.updatePost(postId, postData);
-        return result;
+    const reporter = await this.userRepository.findOneBy({ id: reporterId });
+    if (!reporter) {
+      throw new Error('신고한 사용자를 찾을 수 없습니다.');
     }
 
-    async deletePost(postId: number){
-        const result = await postRepo.deletePost(postId);
-        return result;
-    }
+    const report = this.reportRepository.create({
+      post: post,
+      reporter: reporter,
+      reason: reason,
+    });
+
+    return this.reportRepository.save(report);
+  }
 }
-
-export default PostServiceClass;

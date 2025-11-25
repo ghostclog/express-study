@@ -10,6 +10,7 @@ export { PostComment } from "./tables/PostComment";
 export { Video } from "./tables/Video";
 export { UserProfile } from "./tables/UserProfile";
 export { UserReport } from './tables/UserETC';
+export { PostReport } from '../../domain/PostReport'; // PostReport 추가
 
 import { User } from "./tables/User";
 import { UserProfile } from "./tables/UserProfile";
@@ -17,6 +18,7 @@ import { Post } from "./tables/Post";
 import { PostComment } from "./tables/PostComment";
 import { Video } from "./tables/Video";
 import { UserReport } from './tables/UserETC';
+import { PostReport } from '../../domain/PostReport'; // PostReport 추가
 
 
 // ---------- DB 연결 ----------
@@ -29,7 +31,7 @@ export const AppDataSource = new DataSource({
   database: process.env.DB_DATABASE,
   synchronize: true, // 개발 환경에서는 true로 설정하여 자동 스키마 동기화를 사용합니다.
   logging: process.env.NODE_ENV === 'development', // 개발 환경에서만 로깅 활성화
-  entities: [User, UserProfile, Post, PostComment, Video, UserReport],
+  entities: [User, UserProfile, Post, PostComment, Video, UserReport, PostReport], // PostReport 추가
   migrations: ["src/database/migrations/*.ts"], // 마이그레이션 파일 경로
   subscribers: [],
 });
