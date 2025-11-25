@@ -16,6 +16,7 @@ import { UserProfile } from "./tables/UserProfile";
 import { Post } from "./tables/Post";
 import { PostComment } from "./tables/PostComment";
 import { Video } from "./tables/Video";
+import { UserReport } from './tables/UserETC';
 
 
 // ---------- DB 연결 ----------

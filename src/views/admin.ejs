@@ -14,13 +14,26 @@
       </tr>
     </thead>
     <tbody>
-      <% reports.forEach(function(report, index) { %>
+      <% reports.forEach(function(report) { %>
+        <%
+          const separator = '\\n\\n--- 최근 채팅 내역 ---';
+          const parts = report.report_text.split(new RegExp(separator));
+          const reason = parts[0].replace('신고 사유: ', '');
+          const chatHistory = parts.length > 1 ? parts[1] : null;
+        %>
         <tr>
           <th scope="row"><%= report.id %></th>
           <td><%= new Date(report.createdAt).toLocaleString() %></td>
           <td><%= report.reporter_id %></td>
           <td><%= report.reported_user_id %></td>
-          <td><%= report.report_text %></td>
+          <td>
+            <%= reason %>
+            <% if (chatHistory) { %>
+              <button type="button" class="btn btn-sm btn-outline-secondary ms-2" data-bs-toggle="modal" data-bs-target="#chatHistoryModal" data-chat-history="<%= chatHistory.replace(/"/g, '&quot;') %>">
+                채팅 내역 보기
+              </button>
+            <% } %>
+          </td>
           <td>
             <button type="button" class="btn btn-danger" data-bs-toggle="modal" data-bs-target="#banUserModal" data-user-id="<%= report.reported_user_id %>">
               사용자 제재
@@ -30,6 +43,21 @@
       <% }); %>
     </tbody>
   </table>
+</div>
+
+<!-- 채팅 내역 모달 -->
+<div class="modal fade" id="chatHistoryModal" tabindex="-1" aria-labelledby="chatHistoryModalLabel" aria-hidden="true">
+  <div class="modal-dialog modal-lg">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="chatHistoryModalLabel">채팅 내역</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <div class="modal-body">
+        <pre><code id="chat-history-content"></code></pre>
+      </div>
+    </div>
+  </div>
 </div>
 
 <!-- 제재 모달 -->
@@ -60,6 +88,18 @@
 
 <script>
 document.addEventListener('DOMContentLoaded', function () {
+  // 채팅 내역 모달 관련 로직
+  const chatHistoryModal = document.getElementById('chatHistoryModal');
+  chatHistoryModal.addEventListener('show.bs.modal', function (event) {
+    const button = event.relatedTarget;
+    const chatHistory = button.getAttribute('data-chat-history');
+    const chatContentElement = chatHistoryModal.querySelector('#chat-history-content');
+    
+    // Trim leading/trailing whitespace and newlines
+    chatContentElement.textContent = chatHistory.trim();
+  });
+
+  // 사용자 제재 모달 관련 로직 (기존 코드 생략)
   const banUserModal = document.getElementById('banUserModal');
   banUserModal.addEventListener('show.bs.modal', function (event) {
     const button = event.relatedTarget;

@@ -3,6 +3,7 @@ import bcrypt from "bcrypt";
 import UserOrmRepo from '../database/orm_modules/user_orm_repo';
 import { UserEn } from './../domain/User';
 import { UserReport } from "../database/setting/tables/UserETC";
+import chatCache from "./ChatCache";
 
 const salt = 10;
 const userRepo = new UserOrmRepo();
@@ -36,18 +37,25 @@ class UserServiceClass {
         return user;
     }
 
-    async reportUser(userId: number, reason: string, reporterId: number): Promise<void> {
-        // 비밀번호 해싱
+    async reportUser(userId: number, reason: string, reporterId: number, roomId?: string): Promise<void> {
+        let fullReportText = `신고 사유: ${reason}`;
 
-        // 객체 생성
+        if (roomId) {
+            const cachedMessages = chatCache.get<any[]>(roomId);
+            if (cachedMessages) {
+                const chatHistory = cachedMessages.map(msg => 
+                    `[${new Date(msg.timestamp).toLocaleString()}] ${msg.userName}: ${msg.message}`
+                ).join('\n');
+                fullReportText += `\n\n--- 최근 채팅 내역 ---\n${chatHistory}`;
+            }
+        }
+        
         const userReport = new UserReport();
-        userReport.report_text = reason;
+        userReport.report_text = fullReportText;
         userReport.reported_user_id = userId;
         userReport.reporter_id = reporterId;
 
-        // DB 저장 같은 게 있다면 여기서
         await userRepo.createUserReport(userReport);
-
     }
 
     async getAllReports(): Promise<UserReport[]> {

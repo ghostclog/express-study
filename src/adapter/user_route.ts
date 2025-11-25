@@ -96,17 +96,17 @@ export function createUserRouter(userService: UserService) {
   router.post("/report/user-chat/:user_id", MeddlewareNeedLogin, async (req, res, next) => {
     try {
       const reportedUserId = parseInt(req.params.user_id, 10);
-      const { chat_text } = req.body;
+      const { reason, roomId } = req.body;
       const reporterId = req.user?.id;
 
       if (!reporterId) {
         return res.status(401).send("로그인이 필요합니다.");
       }
-      if (!chat_text) {
-          return res.status(400).send("신고할 채팅 내용이 필요합니다.");
+      if (!reason || !roomId) {
+          return res.status(400).send("신고 사유와 채팅방 정보가 필요합니다.");
       }
 
-      await userService.reportUser(reportedUserId, chat_text, reporterId);
+      await userService.reportUser(reportedUserId, reason, reporterId, roomId);
       res.status(201).json({ message: '채팅 내용이 신고되었습니다.' });
     } catch (error) {
       next(error);
