@@ -1,15 +1,24 @@
 <%- include('common/header', { user: user }) %>
 
-<div class="container mt-5">
-  <h1>관리자 페이지</h1>
+<div class="container mt-5 mb-5">
+  <div class="d-flex justify-content-between align-items-center mb-4">
+    <h1 class="mb-0">관리자 페이지</h1>
+    <span class="text-muted">관리자: <%= user.name %></span>
+  </div>
 
-  <!-- Nav tabs -->
-  <ul class="nav nav-tabs" id="adminTab" role="tablist">
+  <!-- Nav pills -->
+  <ul class="nav nav-pills mb-3" id="adminTab" role="tablist">
     <li class="nav-item" role="presentation">
-      <button class="nav-link active" id="user-reports-tab" data-bs-toggle="tab" data-bs-target="#user-reports" type="button" role="tab" aria-controls="user-reports" aria-selected="true">사용자 신고 목록</button>
+      <button class="nav-link active" id="user-reports-tab" data-bs-toggle="tab" data-bs-target="#user-reports" type="button" role="tab" aria-controls="user-reports" aria-selected="true">
+        사용자 신고
+        <span class="badge rounded-pill bg-danger ms-1"><%= userReports.length %></span>
+      </button>
     </li>
     <li class="nav-item" role="presentation">
-      <button class="nav-link" id="post-reports-tab" data-bs-toggle="tab" data-bs-target="#post-reports" type="button" role="tab" aria-controls="post-reports" aria-selected="false">게시글 신고 목록</button>
+      <button class="nav-link" id="post-reports-tab" data-bs-toggle="tab" data-bs-target="#post-reports" type="button" role="tab" aria-controls="post-reports" aria-selected="false">
+        게시글 신고
+        <span class="badge rounded-pill bg-danger ms-1"><%= postReports.length %></span>
+      </button>
     </li>
   </ul>
 
@@ -17,85 +26,108 @@
   <div class="tab-content" id="adminTabContent">
     <!-- 사용자 신고 목록 -->
     <div class="tab-pane fade show active" id="user-reports" role="tabpanel" aria-labelledby="user-reports-tab">
-      <h2 class="mt-4">사용자 신고 목록</h2>
-      <table class="table table-hover">
-        <thead>
-          <tr>
-            <th scope="col">#</th>
-            <th scope="col">신고 접수 시간</th>
-            <th scope="col">신고자</th>
-            <th scope="col">신고된 사용자</th>
-            <th scope="col">신고 내용</th>
-            <th scope="col">조치</th>
-          </tr>
-        </thead>
-        <tbody>
-          <% userReports.forEach(function(report) { %>
-            <%
-              const separator = '\\n\\n--- 최근 채팅 내역 ---';
-              const parts = report.report_text.split(new RegExp(separator));
-              const reason = parts[0].replace('신고 사유: ', '');
-              const chatHistory = parts.length > 1 ? parts[1] : null;
-            %>
-            <tr>
-              <th scope="row"><%= report.id %></th>
-              <td><%= new Date(report.createdAt).toLocaleString() %></td>
-              <td><%= report.reporter ? report.reporter.name : 'N/A' %> (<%= report.reporter_id %>)</td>
-              <td><%= report.reportedUser ? report.reportedUser.name : 'N/A' %> (<%= report.reported_user_id %>)</td>
-              <td>
-                <%= reason %>
-                <% if (chatHistory) { %>
-                  <button type="button" class="btn btn-sm btn-outline-secondary ms-2" data-bs-toggle="modal" data-bs-target="#chatHistoryModal" data-chat-history="<%= chatHistory.replace(/"/g, '&quot;') %>">
-                    채팅 내역 보기
-                  </button>
-                <% } %>
-              </td>
-              <td>
-                <button type="button" class="btn btn-danger" data-bs-toggle="modal" data-bs-target="#banUserModal" data-user-id="<%= report.reported_user_id %>">
-                  사용자 제재
-                </button>
-              </td>
-            </tr>
-          <% }); %>
-        </tbody>
-      </table>
+      <div class="card">
+        <div class="card-header">
+          <h5>사용자 신고 목록</h5>
+        </div>
+        <div class="card-body">
+          <table class="table table-hover table-striped align-middle">
+            <thead class="table-light">
+              <tr>
+                <th scope="col" style="width: 5%;">#</th>
+                <th scope="col" style="width: 15%;">접수 시간</th>
+                <th scope="col" style="width: 15%;">신고자</th>
+                <th scope="col" style="width: 15%;">신고된 사용자</th>
+                <th scope="col">신고 내용</th>
+                <th scope="col" style="width: 10%;" class="text-center">조치</th>
+              </tr>
+            </thead>
+            <tbody>
+              <% if(userReports.length === 0) { %>
+                <tr>
+                  <td colspan="6" class="text-center text-muted py-4">접수된 사용자 신고가 없습니다.</td>
+                </tr>
+              <% } %>
+              <% userReports.forEach(function(report) { %>
+                <%
+                  const separator = '\\n\\n--- 최근 채팅 내역 ---';
+                  const parts = report.report_text.split(new RegExp(separator));
+                  const reason = parts[0].replace('신고 사유: ', '');
+                  const chatHistory = parts.length > 1 ? parts[1] : null;
+                %>
+                <tr>
+                  <th scope="row"><%= report.id %></th>
+                  <td><%= new Date(report.createdAt).toLocaleString('ko-KR') %></td>
+                  <td><%= report.reporter ? report.reporter.name : 'N/A' %> (#<%= report.reporter_id %>)</td>
+                  <td><%= report.reportedUser ? report.reportedUser.name : 'N/A' %> (#<%= report.reported_user_id %>)</td>
+                  <td>
+                    <span class="d-inline-block text-truncate" style="max-width: 250px;"><%= reason %></span>
+                    <% if (chatHistory) { %>
+                      <button type="button" class="btn btn-sm btn-outline-secondary ms-2" data-bs-toggle="modal" data-bs-target="#chatHistoryModal" data-chat-history="<%= chatHistory.replace(/"/g, '&quot;') %>">
+                        채팅 내역
+                      </button>
+                    <% } %>
+                  </td>
+                  <td class="text-center">
+                    <button type="button" class="btn btn-sm btn-danger" data-bs-toggle="modal" data-bs-target="#banUserModal" data-user-id="<%= report.reported_user_id %>">
+                      사용자 제재
+                    </button>
+                  </td>
+                </tr>
+              <% }); %>
+            </tbody>
+          </table>
+        </div>
+      </div>
     </div>
 
     <!-- 게시글 신고 목록 -->
     <div class="tab-pane fade" id="post-reports" role="tabpanel" aria-labelledby="post-reports-tab">
-        <h2 class="mt-4">게시글 신고 목록</h2>
-        <table class="table table-hover">
-            <thead>
-                <tr>
-                    <th scope="col">#</th>
-                    <th scope="col">신고 접수 시간</th>
-                    <th scope="col">신고자</th>
-                    <th scope="col">신고된 게시글</th>
-                    <th scope="col">신고 사유</th>
-                    <th scope="col">조치</th>
-                </tr>
-            </thead>
-            <tbody>
-                <% postReports.forEach(function(report) { %>
-                    <tr>
-                        <th scope="row"><%= report.id %></th>
-                        <td><%= new Date(report.createdAt).toLocaleString() %></td>
-                        <td><%= report.reporter ? report.reporter.name : 'N/A' %></td>
-                        <td>
-                            <a href="/post/posts/<%= report.post.id %>" target="_blank">
-                                <%= report.post.title %> (ID: <%= report.post.id %>)
-                            </a>
-                        </td>
-                        <td><%= report.reason %></td>
-                        <td>
-                            <button type="button" class="btn btn-secondary" onclick="deletePost('<%= report.post.id %>')">
-                                게시글 삭제
-                            </button>
-                        </td>
-                    </tr>
-                <% }); %>
-            </tbody>
-        </table>
+        <div class="card">
+            <div class="card-header">
+                <h5>게시글 신고 목록</h5>
+            </div>
+            <div class="card-body">
+                <table class="table table-hover table-striped align-middle">
+                    <thead class="table-light">
+                        <tr>
+                            <th scope="col" style="width: 5%;">#</th>
+                            <th scope="col" style="width: 15%;">접수 시간</th>
+                            <th scope="col" style="width: 15%;">신고자</th>
+                            <th scope="col">신고된 게시글</th>
+                            <th scope="col">신고 사유</th>
+                            <th scope="col" style="width: 10%;" class="text-center">조치</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                      <% if(postReports.length === 0) { %>
+                        <tr>
+                          <td colspan="6" class="text-center text-muted py-4">접수된 게시글 신고가 없습니다.</td>
+                        </tr>
+                      <% } %>
+                      <% postReports.forEach(function(report) { %>
+                          <tr>
+                              <th scope="row"><%= report.id %></th>
+                              <td><%= new Date(report.createdAt).toLocaleString('ko-KR') %></td>
+                              <td><%= report.reporter ? report.reporter.name : 'N/A' %></td>
+                              <td>
+                                  <a href="/post/posts/<%= report.post.id %>" target="_blank" title="<%= report.post.title %>">
+                                    <span class="d-inline-block text-truncate" style="max-width: 200px;"><%= report.post.title %></span>
+                                  </a>
+                                  <small class="text-muted">(#<%= report.post.id %>)</small>
+                              </td>
+                              <td><span class="d-inline-block text-truncate" style="max-width: 250px;"><%= report.reason %></span></td>
+                              <td class="text-center">
+                                  <button type="button" class="btn btn-sm btn-secondary" onclick="deletePost('<%= report.post.id %>')">
+                                      게시글 삭제
+                                  </button>
+                              </td>
+                          </tr>
+                      <% }); %>
+                    </tbody>
+                </table>
+            </div>
+        </div>
     </div>
   </div>
 </div>
