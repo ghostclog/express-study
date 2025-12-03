@@ -97,6 +97,26 @@ export function createPostRouter(postService: PostService, commentService: Comme
     res.json(result);
   });
 
+  router.post("/api/posts/:post_id/report", MeddlewareNeedLogin, loadPost(), async (req, res, next) => {
+    try {
+      const postId = req.post!.id;
+      const { reason } = req.body;
+      const reporterId = req.user?.id;
+
+      if (!reporterId) {
+        return res.status(401).send("로그인이 필요합니다.");
+      }
+      if (!reason) {
+          return res.status(400).send("신고 사유가 필요합니다.");
+      }
+
+      await postService.reportPost(postId, reason, reporterId);
+      res.status(201).json({ message: '게시글 신고가 접수되었습니다.' });
+    } catch (error) {
+      next(error);
+    }
+  });
+
   router.post("/api/posts/:post_id/clips", MeddlewareNeedLogin, loadPost(), async (req, res) => {
     const postId = req.post!.id;
     const { title, startTime, endTime } = req.body;

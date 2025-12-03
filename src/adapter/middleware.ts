@@ -7,7 +7,7 @@ import { PostEn, CommentEn } from '../domain/Post';
 declare global {
   namespace Express {
     interface Request {
-      post?: PostEn;
+      post?: PostEn; // 타입을 PostEn으로 유지
       comment?: CommentEn;
     }
   }
@@ -47,6 +47,7 @@ export const loadPost = () => {
         return res.status(404).send("게시글을 찾을 수 없습니다.");
       }
 
+      // getPostById가 PostEn을 반환하므로 타입 문제가 해결됨
       req.post = post;
       next();
     } catch (error) {

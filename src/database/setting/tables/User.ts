@@ -1,7 +1,16 @@
-import { Entity, PrimaryGeneratedColumn, Column, OneToMany, OneToOne, CreateDateColumn, UpdateDateColumn } from "typeorm";
-import { PostComment } from "./PostComment";
-import { Post } from "./Post";
+import {
+  Entity,
+  PrimaryGeneratedColumn,
+  Column,
+  CreateDateColumn,
+  UpdateDateColumn,
+  OneToOne,
+  OneToMany,
+} from "typeorm";
 import { UserProfile } from "./UserProfile";
+import { Post } from "./Post";
+import { PostComment } from "./PostComment";
+import { PostReport } from "./PostReport";
 
 @Entity()
 export class User {
@@ -32,11 +41,14 @@ export class User {
   @Column({ type: 'timestamp', nullable: true })
   banned_at?: Date;
 
-  @OneToMany(() => Post, (post) => post.writer, { nullable: true })
+  @OneToMany(() => Post, (post) => post.writer)
   posts?: Post[];
 
-  @OneToMany(() => PostComment, (postComment) => postComment.writer, { nullable: true })
+  @OneToMany(() => PostComment, (postComment) => postComment.writer)
   postComments?: PostComment[];
+
+  @OneToMany(() => PostReport, (report) => report.reporter)
+  reportedPosts?: PostReport[];
 
   @OneToOne(() => UserProfile, (profile) => profile.user, { nullable: true })
   profile?: UserProfile;

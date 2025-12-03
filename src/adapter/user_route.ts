@@ -2,10 +2,12 @@ import { Router } from "express";
 import passport from "passport";
 
 import type UserService from "../application/UserService";
+import PostService from "../application/PostService"; // PostService import 추가
 import {MeddlewareNeedLogin} from "../settings/security"
 
 export function createUserRouter(userService: UserService) {
   const router = Router();
+  const postService = new PostService(); // PostService 인스턴스 생성
 
   router.get("/user/:user_id", async (req, res) => {
     const userId = parseInt(req.params.user_id, 10);
@@ -39,9 +41,14 @@ export function createUserRouter(userService: UserService) {
   );
 
   router.get("/admin", MeddlewareNeedLogin, async (req, res) => {
-    if (req.user && req.user.permission_level >= 0) {
-      const reports = await userService.getAllReports();
-      res.render("admin", { user: req.user, reports: reports });
+    if (req.user && req.user.permission_level >= 0) { // 어드민 권한 체크 (실제로는 더 엄격해야 함)
+      const userReports = await userService.getAllReports();
+      const postReports = await postService.getAllPostReports(); // 게시글 신고 목록 가져오기
+      res.render("admin", { 
+        user: req.user, 
+        userReports: userReports,
+        postReports: postReports // 템플릿에 전달
+      });
     } else {
       res.status(403).send("접근 권한이 없습니다.");
     }

@@ -1,4 +1,4 @@
-import { AppDataSource, PostComment, Post, User, Video } from "./../setting/config";
+import { AppDataSource, Post, PostComment, User, Video, PostReport } from "./../setting/config";
 import { PostEn, CommentEn, PostType } from './../../domain/Post';
 import { UserEn } from './../../domain/User';
 
@@ -6,6 +6,7 @@ class PostOrmRepo {
     private postRepo = AppDataSource.getRepository(Post);
     private commentRepo = AppDataSource.getRepository(PostComment);
     private userRepo = AppDataSource.getRepository(User);
+    private reportRepo = AppDataSource.getRepository(PostReport); // PostReport Repository 추가
 
     // Post CRUD
     async createPost(post: PostEn, writerId: number, videoId?: number): Promise<PostEn> {
@@ -227,6 +228,33 @@ class PostOrmRepo {
     async deleteComment(id: number): Promise<boolean> {
         const result = await this.commentRepo.delete(id);
         return result.affected !== 0;
+    }
+
+    async createPostReport(postId: number, reason: string, reporterId: number): Promise<PostReport> {
+        const post = await this.postRepo.findOneBy({ id: postId });
+        if (!post) {
+            throw new Error('Post not found');
+        }
+
+        const reporter = await this.userRepo.findOneBy({ id: reporterId });
+        if (!reporter) {
+            throw new Error('Reporter not found');
+        }
+
+        const report = this.reportRepo.create({
+            post,
+            reporter,
+            reason,
+        });
+
+        return this.reportRepo.save(report);
+    }
+
+    async getAllPostReports(): Promise<PostReport[]> {
+        return this.reportRepo.find({
+            relations: ["post", "reporter"],
+            order: { createdAt: "DESC" }
+        });
     }
 }
 

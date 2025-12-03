@@ -10,7 +10,7 @@
                 <span>타입: <%= postTypeDisplayNames[post.post_type] || post.post_type %></span>
             </div>
         </div>
-        <div class="post-content">
+        <div class="post-content" id="post-content-text">
             <%- post.contents.replace(/\\n/g, '<br>') %>
 
             <% if (post.post_type === 'video_share' && post.video) { %>
@@ -22,6 +22,9 @@
                 </div>
             <% } %>
         </div>
+        <div class="post-actions text-end p-3">
+            <button class="btn btn-outline-secondary btn-sm" onclick="copyPostContent()">내용 복사</button>
+        </div>
     <% } else { %>
         <div class="card-body">
             <h1 class="text-center">게시글을 찾을 수 없습니다.</h1>
@@ -30,6 +33,7 @@
 </div>
 
 <!-- Comment Section -->
+<% if (post) { %>
 <div class="card mt-4">
     <div class="card-body">
         <h3 class="mb-4">댓글 (<span id="comment-count"><%= post ? post.comment_count : 0 %></span>)</h3>
@@ -54,11 +58,17 @@
         </div>
     </div>
 </div>
-
+<% } %>
 
 <div class="mt-4 d-flex justify-content-between">
     <a href="/post/posts" class="btn btn-secondary">목록으로 돌아가기</a>
     <div>
+        <% if (user && post && post.writer && user.id !== post.writer.id) { %>
+            <button class="btn btn-warning" data-bs-toggle="modal" data-bs-target="#reportPostModal">게시글 신고</button>
+        <% } %>
+        <% if (post && post.post_type === 'video_share' && post.video) { %>
+            <a href="/<%= post.video.file_path.replace(/\\/g, '/') %>" class="btn btn-success" download>영상 다운로드</a>
+        <% } %>
         <% if (user && post && post.writer && user.id === post.writer.id) { %>
             <a href="/post/posts/<%= post.id %>/edit" class="btn btn-primary me-2">게시글 수정</a>
             <button class="btn btn-danger" onclick="deletePost()">게시글 삭제</button>
@@ -71,6 +81,31 @@
         <% } %>
     </div>
 </div>
+
+<!-- Report Post Modal -->
+<div class="modal fade" id="reportPostModal" tabindex="-1" aria-labelledby="reportPostModalLabel" aria-hidden="true">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="reportPostModalLabel">게시글 신고</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <div class="modal-body">
+        <form id="reportPostForm">
+          <div class="mb-3">
+            <label for="report-reason" class="col-form-label">신고 사유:</label>
+            <textarea class="form-control" id="report-reason" name="reason" rows="4" required></textarea>
+          </div>
+        </form>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">닫기</button>
+        <button type="button" class="btn btn-danger" id="submitReport">신고하기</button>
+      </div>
+    </div>
+  </div>
+</div>
+
 
 <script id="user-data" type="application/json"><%- JSON.stringify(user || null) %></script>
 <script>
@@ -150,6 +185,40 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // Initial load
     fetchComments();
+
+    // Report Post Logic
+    const submitReportButton = document.getElementById('submitReport');
+    if (submitReportButton) {
+        submitReportButton.addEventListener('click', async () => {
+            const postId = '<%= post ? post.id : "" %>';
+            const reason = document.getElementById('report-reason').value;
+            if (!reason.trim()) {
+                alert('신고 사유를 입력해주세요.');
+                return;
+            }
+
+            try {
+                const response = await fetch(`/post/api/posts/${postId}/report`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ reason }),
+                });
+
+                if (response.ok) {
+                    alert('게시글 신고가 성공적으로 접수되었습니다.');
+                    const reportModal = bootstrap.Modal.getInstance(document.getElementById('reportPostModal'));
+                    reportModal.hide();
+                    document.getElementById('report-reason').value = '';
+                } else {
+                    const errorText = await response.text();
+                    alert(`신고 접수에 실패했습니다: ${errorText}`);
+                }
+            } catch (error) {
+                console.error('Error reporting post:', error);
+                alert('신고 중 오류가 발생했습니다.');
+            }
+        });
+    }
 });
 
 // Edit and Delete functions need to be global for inline onclick
@@ -218,6 +287,20 @@ async function deletePost() {
             console.error('Error deleting post:', error);
             alert('게시글 삭제 중 오류가 발생했습니다.');
         }
+    }
+}
+
+function copyPostContent() {
+    const contentEl = document.getElementById('post-content-text');
+    if (contentEl) {
+        navigator.clipboard.writeText(contentEl.innerText)
+            .then(() => {
+                alert('게시글 내용이 클립보드에 복사되었습니다.');
+            })
+            .catch(err => {
+                console.error('Failed to copy text: ', err);
+                alert('내용 복사에 실패했습니다.');
+            });
     }
 }
 </script>
