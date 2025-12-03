@@ -41,11 +41,9 @@ class UserServiceClass {
         let fullReportText = `신고 사유: ${reason}`;
 
         if (roomId) {
-            const cachedMessages = chatCache.get<any[]>(roomId);
-            if (cachedMessages) {
-                const chatHistory = cachedMessages.map(msg => 
-                    `[${new Date(msg.timestamp).toLocaleString()}] ${msg.userName}: ${msg.message}`
-                ).join('\n');
+            const chatHistory = chatCache.get<string>(roomId);
+            if (chatHistory) {
+                // 더 이상 배열을 변환할 필요 없이, 저장된 문자열을 그대로 사용
                 fullReportText += `\n\n--- 최근 채팅 내역 ---\n${chatHistory}`;
             }
         }

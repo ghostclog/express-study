@@ -39,7 +39,7 @@ export function createUserRouter(userService: UserService) {
   );
 
   router.get("/admin", MeddlewareNeedLogin, async (req, res) => {
-    if (req.user && req.user.permission_level > 0) {
+    if (req.user && req.user.permission_level >= 0) {
       const reports = await userService.getAllReports();
       res.render("admin", { user: req.user, reports: reports });
     } else {

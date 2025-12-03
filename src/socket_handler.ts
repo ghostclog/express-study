@@ -55,21 +55,14 @@ export default function initializeSocket(io: Server) {
             if (currentRoomId && rooms[currentRoomId] && rooms[currentRoomId].has(socket.id)) {
                 const user = rooms[currentRoomId].get(socket.id);
                 if (user) {
-                    const chatMessage: ChatMessage = {
-                        userId: user.userId,
-                        userName: user.name,
-                        message: message,
-                        timestamp: Date.now()
-                    };
+                    const timestamp = new Date().toLocaleString();
+                    const logEntry = `[${timestamp}] ${user.name}: ${message}`;
 
-                    // Add to cache
-                    const cachedMessages = chatCache.get<ChatMessage[]>(currentRoomId) || [];
-                    cachedMessages.push(chatMessage);
-                    // Keep only the last 20 messages
-                    if (cachedMessages.length > 20) {
-                        cachedMessages.shift();
-                    }
-                    chatCache.set(currentRoomId, cachedMessages);
+                    // 기존 로그를 가져와 새 로그를 \n과 함께 추가
+                    const existingLogs = chatCache.get<string>(currentRoomId) || "";
+                    const newLogs = existingLogs ? `${existingLogs}\n${logEntry}` : logEntry;
+                    
+                    chatCache.set(currentRoomId, newLogs);
 
                     io.to(currentRoomId).emit('new_message', { userId: user.userId, userName: user.name, message });
                 }
