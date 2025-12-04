@@ -21,7 +21,7 @@ export class Video {
     @CreateDateColumn()
     createdAt!: Date;
 
-    @OneToOne(() => Post, post => post.video)
+    @OneToOne(() => Post, post => post.video, { onDelete: "CASCADE" })
     @JoinColumn()
     post!: Post;
 }

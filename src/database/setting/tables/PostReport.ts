@@ -14,7 +14,7 @@ export class PostReport {
   @JoinColumn({ name: 'reporter_id' })
   reporter!: User;
 
-  @ManyToOne(() => Post, post => post.reports, { nullable: false })
+  @ManyToOne(() => Post, post => post.reports, { nullable: false, onDelete: 'CASCADE' })
   @JoinColumn({ name: 'post_id' })
   post!: Post;
 

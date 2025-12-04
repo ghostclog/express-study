@@ -1,6 +1,7 @@
 import { AppDataSource, Post, PostComment, User, Video, PostReport } from "./../setting/config";
 import { PostEn, CommentEn, PostType } from './../../domain/Post';
 import { UserEn } from './../../domain/User';
+import fs from 'fs';
 
 class PostOrmRepo {
     private postRepo = AppDataSource.getRepository(Post);
@@ -123,6 +124,21 @@ class PostOrmRepo {
     }
 
     async deletePost(id: number): Promise<boolean> {
+        const post = await this.postRepo.findOne({
+            where: { id },
+            relations: ["video"]
+        });
+
+        if (post?.video?.file_path) {
+            try {
+                if (fs.existsSync(post.video.file_path)) {
+                    fs.unlinkSync(post.video.file_path);
+                }
+            } catch (error) {
+                console.error("Error deleting video file:", error);
+            }
+        }
+
         const result = await this.postRepo.delete(id);
         return result.affected !== 0;
     }
