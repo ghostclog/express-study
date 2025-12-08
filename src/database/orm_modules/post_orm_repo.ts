@@ -247,20 +247,23 @@ class PostOrmRepo {
     }
 
     async createPostReport(postId: number, reason: string, reporterId: number): Promise<PostReport> {
-        const post = await this.postRepo.findOneBy({ id: postId });
-        if (!post) {
-            throw new Error('Post not found');
+        const postToArchive = await this.getPostById(postId);
+        if (!postToArchive) {
+            throw new Error('신고할 게시글을 찾을 수 없습니다.');
         }
 
-        const reporter = await this.userRepo.findOneBy({ id: reporterId });
-        if (!reporter) {
-            throw new Error('Reporter not found');
+        if (!postToArchive.writer) {
+            throw new Error('게시글 작성자 정보를 찾을 수 없습니다.');
         }
+        
+        const archivedPostData = JSON.stringify(postToArchive, null, 2);
 
         const report = this.reportRepo.create({
-            post,
-            reporter,
-            reason,
+            reporter_id: reporterId,
+            reported_post_id: postId,
+            reported_user_id: postToArchive.writer.id,
+            reason: reason,
+            archived_post_data: archivedPostData,
         });
 
         return this.reportRepo.save(report);
@@ -268,7 +271,6 @@ class PostOrmRepo {
 
     async getAllPostReports(): Promise<PostReport[]> {
         return this.reportRepo.find({
-            relations: ["post", "reporter"],
             order: { createdAt: "DESC" }
         });
     }

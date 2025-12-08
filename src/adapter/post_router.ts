@@ -141,6 +141,36 @@ export function createPostRouter(postService: PostService, commentService: Comme
       res.status(500).send("Failed to create clip.");
     }
   });
+
+  router.post("/api/posts/:post_id/delete-by-admin", MeddlewareNeedLogin, async (req, res, next) => {
+    try {
+      if (!req.user || req.user.permission_level <= 0) {
+        return res.status(403).send("접근 권한이 없습니다.");
+      }
+      
+      const postId = parseInt(req.params.post_id, 10);
+      const { reportId } = req.body;
+
+      if (!reportId) {
+        return res.status(400).send("Report ID is required.");
+      }
+
+      // 1. 게시글 삭제 (이미 삭제된 경우 에러 무시)
+      try {
+        await postService.deletePost(postId);
+      } catch (error) {
+        console.warn(`Post ${postId} might already be deleted or error occurred:`, error);
+      }
+
+      // 2. 신고 상태 'resolved'로 변경
+      await postService.resolvePostReport(parseInt(reportId, 10));
+
+      res.status(200).json({ message: "게시글이 삭제되고 신고가 처리되었습니다." });
+    } catch (error) {
+      next(error);
+    }
+  });
+
   router.delete("/api/posts/:post_id", MeddlewareNeedLogin, loadPost(), checkOwnership(req => req.post?.writer), async (req, res) => {
     const postId = req.post!.id;
     await postService.deletePost(postId);

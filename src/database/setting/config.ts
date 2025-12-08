@@ -20,11 +20,11 @@ export const AppDataSource = new DataSource({
   type: "postgres",
   host: process.env.DB_HOST || "localhost",
   port: parseInt(process.env.DB_PORT || "5432", 10),
-  username: process.env.DB_USERNAME,
-  password: process.env.DB_PASSWORD,
-  database: process.env.DB_DATABASE || "mydatabase",
+  username: process.env.DB_USERNAME || '유저이름',
+  password: process.env.DB_PASSWORD || '비밀번호',
+  database: process.env.DB_DATABASE || 'node_study',
   synchronize: true, // 개발 환경에서는 true로 설정하여 자동 마이그레이션
-  logging: false,
+  logging: true,
   entities: [User, UserProfile, Post, PostComment, Video, UserReport, PostReport], // entities 배열에 PostReport 추가
   migrations: [],
   subscribers: [],

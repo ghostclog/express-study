@@ -1,3 +1,4 @@
+import { PostReportOrmRepo } from './../database/orm_modules/post_report_orm_repo';
 import PostOrmRepo from '../database/orm_modules/post_orm_repo';
 import { PostEn, PostType } from '../domain/Post';
 import { PostReport } from '../database/setting/tables/PostReport';
@@ -35,6 +36,11 @@ class PostService {
 
     async getAllPostReports(): Promise<PostReport[]> {
         return await postRepo.getAllPostReports();
+    }
+
+    async resolvePostReport(reportId: number): Promise<PostReport | null> {
+        await PostReportOrmRepo.update(reportId, { status: 'resolved' });
+        return await PostReportOrmRepo.findOneBy({ id: reportId });
     }
 }
 

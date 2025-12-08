@@ -172,6 +172,66 @@
   </div>
 </div>
 
+<hr class="my-5">
+
+<div class="container mt-5">
+  <h2>게시글 신고 목록</h2>
+  <table class="table table-hover">
+    <thead>
+      <tr>
+        <th scope="col">#</th>
+        <th scope="col">신고 시간</th>
+        <th scope="col">신고자 ID</th>
+        <th scope="col">작성자 ID</th>
+        <th scope="col">원본 글 ID</th>
+        <th scope="col">신고 사유</th>
+        <th scope="col">상태</th>
+        <th scope="col">조치</th>
+      </tr>
+    </thead>
+    <tbody>
+      <% postReports.forEach(function(report) { %>
+        <% if (report.status === 'pending') { %>
+          <tr>
+            <th scope="row"><%= report.id %></th>
+            <td><%= new Date(report.createdAt).toLocaleString() %></td>
+            <td><%= report.reporter_id %></td>
+            <td><%= report.reported_user_id %></td>
+            <td><%= report.reported_post_id %></td>
+            <td><%= report.reason %></td>
+            <td><span class="badge bg-warning text-dark"><%= report.status %></span></td>
+            <td>
+              <button class="btn btn-sm btn-info" data-bs-toggle="modal" data-bs-target="#postSnapshotModal" data-snapshot='<%- JSON.stringify(JSON.parse(report.archived_post_data)) %>'>
+                스냅샷 보기
+              </button>
+              <button class="btn btn-sm btn-danger" data-bs-toggle="modal" data-bs-target="#banUserModal" data-user-id="<%= report.reported_user_id %>">
+                작성자 제재
+              </button>
+              <button class="btn btn-sm btn-outline-danger" onclick="deletePost('<%= report.reported_post_id %>', '<%= report.id %>')">
+                게시글 삭제
+              </button>
+            </td>
+          </tr>
+        <% } %>
+      <% }); %>
+    </tbody>
+  </table>
+</div>
+
+<!-- Post Snapshot Modal -->
+<div class="modal fade" id="postSnapshotModal" tabindex="-1" aria-labelledby="postSnapshotModalLabel" aria-hidden="true">
+  <div class="modal-dialog modal-xl">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="postSnapshotModalLabel">게시글 스냅샷</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <div class="modal-body">
+        <div id="snapshot-content"></div>
+      </div>
+    </div>
+  </div>
+</div>
 
 <script>
 document.addEventListener('DOMContentLoaded', function () {
@@ -232,26 +292,52 @@ document.addEventListener('DOMContentLoaded', function () {
       alert('오류가 발생했습니다: ' + error.message);
     });
   });
-});
 
-async function deletePost(postId) {
-    if (!confirm(`정말로 이 게시글(ID: ${postId})을 삭제하시겠습니까?`)) return;
+  // Post Snapshot Modal Logic
+  const postSnapshotModal = document.getElementById('postSnapshotModal');
+  postSnapshotModal.addEventListener('show.bs.modal', function (event) {
+    const button = event.relatedTarget;
+    const snapshot = JSON.parse(button.getAttribute('data-snapshot'));
+    const contentElement = postSnapshotModal.querySelector('#snapshot-content');
+
+    let videoHTML = snapshot.video ?
+        `<p><strong>첨부 영상:</strong> <code>${snapshot.video.file_path}</code></p>
+         <video src="/${snapshot.video.file_path.replace(/\\\\/g, '/')}" controls class="img-fluid"></video>` :
+        '<p>첨부 영상 없음</p>';
+
+    contentElement.innerHTML = `
+      <h3>${snapshot.title}</h3>
+      <p><strong>작성자:</strong> ${snapshot.writer.name} (ID: ${snapshot.writer.id})</p>
+      <p><strong>작성일:</strong> ${new Date(snapshot.createdAt).toLocaleString()}</p>
+      <hr>
+      <div>${snapshot.contents}</div>
+      <hr>
+      ${videoHTML}
+    `;
+  });
+
+  // Delete Post Function
+  window.deletePost = async function(postId, reportId) {
+    if (!confirm('정말로 이 게시글을 삭제하고 신고를 처리 완료하시겠습니까?')) return;
+
     try {
-        const response = await fetch(`/post/api/posts/${postId}`, {
-            method: 'DELETE'
-        });
-        if (response.ok) {
-            alert('게시글이 성공적으로 삭제되었습니다.');
-            location.reload();
-        } else {
-            const errorText = await response.text();
-            alert(`게시글 삭제에 실패했습니다: ${errorText}`);
-        }
+      const response = await fetch(`/post/api/posts/${postId}/delete-by-admin`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ reportId: reportId })
+      });
+      const result = await response.json();
+      if (response.ok) {
+        alert(result.message);
+        location.reload();
+      } else {
+        throw new Error(result.message);
+      }
     } catch (error) {
-        console.error('Error deleting post:', error);
-        alert('게시글 삭제 중 오류가 발생했습니다.');
+      alert('오류 발생: ' + error.message);
     }
-}
+  }
+});
 </script>
 
 <%- include('common/footer') %>

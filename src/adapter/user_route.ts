@@ -41,12 +41,12 @@ export function createUserRouter(userService: UserService) {
   );
 
   router.get("/admin", MeddlewareNeedLogin, async (req, res) => {
-    if (req.user && req.user.permission_level >= 0) { // 어드민 권한 체크 (실제로는 더 엄격해야 함)
+    if (req.user && req.user.permission_level > 0) { // 어드민 권한 체크 (실제로는 더 엄격해야 함)
       const userReports = await userService.getAllReports();
       const postReports = await postService.getAllPostReports(); // 게시글 신고 목록 가져오기
       res.render("admin", { 
         user: req.user, 
-        userReports: userReports,
+        reports: userReports, // 변수명 일관성을 위해 userReports -> reports로 변경
         postReports: postReports // 템플릿에 전달
       });
     } else {
