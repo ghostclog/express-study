@@ -1,4 +1,6 @@
-import { Entity, PrimaryGeneratedColumn, Column, CreateDateColumn } from "typeorm";
+import { Entity, PrimaryGeneratedColumn, Column, CreateDateColumn, ManyToOne, JoinColumn } from "typeorm";
+import { User } from "./User";
+import { Post } from "./Post";
 
 @Entity()
 export class PostReport {
@@ -25,4 +27,12 @@ export class PostReport {
 
   @CreateDateColumn()
   createdAt!: Date;
+
+  @ManyToOne(() => User, (user) => user.reportedPosts)
+  @JoinColumn({ name: 'reporter_id' })
+  reporter!: User;
+
+  @ManyToOne(() => Post, (post) => post.reports)
+  @JoinColumn({ name: 'reported_post_id' }) 
+  post!: Post;
 }

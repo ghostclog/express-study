@@ -1,6 +1,20 @@
 <%- include('common/header', { user: typeof user !== 'undefined' ? user : null, title: '게시글 목록' }) %>
 
 <div class="card">
+    <style>
+        .writer-cell {
+            position: relative;
+        }
+        .block-btn {
+            display: none;
+            margin-left: 5px;
+            font-size: 0.7rem;
+            padding: 0.1rem 0.3rem;
+        }
+        .writer-cell:hover .block-btn {
+            display: inline-block;
+        }
+    </style>
     <div class="card-body">
         <h1 class="mb-4">게시글 목록</h1>
         <table class="table table-hover">
@@ -50,8 +64,8 @@
                     row.innerHTML = `
                         <td onclick="location.href='/post/posts/${post.id}'" style="cursor:pointer">${post.id}</td>
                         <td onclick="location.href='/post/posts/${post.id}'" style="cursor:pointer">${post.title}</td>
-                        <td>
-                            ${post.writer ? post.writer.name : 'N/A'}
+                        <td class="writer-cell">
+                            <span>${post.writer ? post.writer.name : 'N/A'}</span>
                             ${blockBtnHtml}
                         </td>
                         <td onclick="location.href='/post/posts/${post.id}'" style="cursor:pointer">${displayPostType}</td>
