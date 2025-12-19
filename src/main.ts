@@ -77,7 +77,7 @@ main_router.get("/",(req,res)=>{
 app.use("/",main_router);
 app.use("/users", createUserRouter(user_service));       // 인증 필요
 app.use("/stream", createStreamRouter());
-app.use("/post", createPostRouter(post_service, comment_service, video_service));
+app.use("/post", createPostRouter(post_service, comment_service, video_service, user_service));
 // app.use("/products", productRouter);                 // 인증 선택적
 
 // ---------- 서버 시작 ----------

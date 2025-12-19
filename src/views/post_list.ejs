@@ -25,6 +25,7 @@
 
 <script>
     const postTypeDisplayNames = <%- JSON.stringify(postTypeDisplayNames) %>;
+    const currentUser = <%- JSON.stringify(typeof user !== 'undefined' ? user : null) %>;
 
     document.addEventListener('DOMContentLoaded', function() {
         fetch('/post/api/posts')
@@ -32,29 +33,62 @@
             .then(posts => {
                 const postListBody = document.getElementById('post-list');
                 if (posts.length === 0) {
-                    postListBody.innerHTML = '<tr><td colspan="6" class="text-center">게시글이 없습니다.</td></tr>';
+                    postListBody.innerHTML = '<tr><td colspan="7" class="text-center">게시글이 없습니다.</td></tr>';
                     return;
                 }
                 posts.forEach(post => {
                     const row = document.createElement('tr');
-                    row.style.cursor = 'pointer';
-                    row.onclick = () => {
-                        window.location.href = `/post/posts/${post.id}`;
-                    };
                     
                     const createdAt = post.createdAt ? new Date(post.createdAt).toLocaleDateString('ko-KR') : '-';
                     const displayPostType = postTypeDisplayNames[post.post_type] || post.post_type;
 
+                    let blockBtnHtml = '';
+                    if (currentUser && post.writer && currentUser.id !== post.writer.id) {
+                         blockBtnHtml = `<button class="btn btn-sm btn-outline-danger block-btn" data-userid="${post.writer.id}" data-username="${post.writer.name}">차단</button>`;
+                    }
+
                     row.innerHTML = `
-                        <td>${post.id}</td>
-                        <td>${post.title}</td>
-                        <td>${post.writer ? post.writer.name : 'N/A'}</td>
-                        <td>${displayPostType}</td>
-                        <td>${post.comment_count}</td>
-                        <td>${createdAt}</td>
+                        <td onclick="location.href='/post/posts/${post.id}'" style="cursor:pointer">${post.id}</td>
+                        <td onclick="location.href='/post/posts/${post.id}'" style="cursor:pointer">${post.title}</td>
+                        <td>
+                            ${post.writer ? post.writer.name : 'N/A'}
+                            ${blockBtnHtml}
+                        </td>
+                        <td onclick="location.href='/post/posts/${post.id}'" style="cursor:pointer">${displayPostType}</td>
+                        <td onclick="location.href='/post/posts/${post.id}'" style="cursor:pointer">${post.comment_count}</td>
+                        <td onclick="location.href='/post/posts/${post.id}'" style="cursor:pointer">${createdAt}</td>
                     `;
                     postListBody.appendChild(row);
                 });
+
+                // 차단 버튼 이벤트 리스너 등록
+                document.querySelectorAll('.block-btn').forEach(btn => {
+                    btn.addEventListener('click', async (e) => {
+                        e.stopPropagation(); // 행 클릭 이벤트 전파 방지
+                        const userId = e.target.dataset.userid;
+                        const username = e.target.dataset.username;
+
+                        if (confirm(`정말로 ${username}님을 차단하시겠습니까? 차단 시 해당 유저의 게시글이 보이지 않습니다.`)) {
+                            try {
+                                const response = await fetch(`/users/block/${userId}`, {
+                                    method: 'POST',
+                                    headers: { 'Content-Type': 'application/json' }
+                                });
+                                if (response.ok) {
+                                    alert('차단되었습니다.');
+                                    window.location.reload(); // 목록 갱신
+                                } else {
+                                    const errorText = await response.text();
+                                    alert(`차단 실패: ${errorText}`);
+                                }
+                            } catch (error) {
+                                console.error('Error blocking user:', error);
+                                alert('차단 중 오류가 발생했습니다.');
+                            }
+                        }
+                    });
+                });
+
             })
             .catch(error => console.error('Error fetching posts:', error));
     });
