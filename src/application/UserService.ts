@@ -65,6 +65,14 @@ class UserServiceClass {
         bannedUntil.setDate(bannedUntil.getDate() + banDurationDays);
         await userRepo.updateUserBan(userId, bannedUntil);
     }
+
+    async getBlackList(userId: number): Promise<number[]> {
+        return await userRepo.getBlackList(userId);
+    }
+
+    async addToBlackList(ownerId: number, targetId: number): Promise<void> {
+        await userRepo.addToBlackList(ownerId, targetId);
+    }
 }
 
 

@@ -120,17 +120,25 @@ export function createUserRouter(userService: UserService) {
     }
   });
 
-  // 기존 report 라우트는 삭제합니다.
-  /*
-  router.post("/report/:user_id", MeddlewareNeedLogin, async (req, res, next) => {
-    const userId = parseInt(req.params.user_id, 10);
-    const user = await userService.getUserById(userId);
-    const chat_text = req.body.chat_text;
-    const reporterId = req.user?.id;
-    await userService.reportUser(userId, chat_text, reporterId);
-    res.redirect("/");
+  router.post("/block/:user_id", MeddlewareNeedLogin, async (req, res, next) => {
+      try {
+          const targetId = parseInt(req.params.user_id, 10);
+          const ownerId = req.user?.id;
+
+          if (!ownerId) {
+              return res.status(401).send("로그인이 필요합니다.");
+          }
+
+          if (ownerId === targetId) {
+              return res.status(400).send("자기 자신을 차단할 수 없습니다.");
+          }
+
+          await userService.addToBlackList(ownerId, targetId);
+          res.status(201).json({ message: '사용자를 차단했습니다.' });
+      } catch (error) {
+          next(error);
+      }
   });
-  */
 
   return router;
 }

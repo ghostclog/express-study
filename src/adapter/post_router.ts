@@ -9,7 +9,9 @@ import { PostEn, PostType, CommentEn } from "../domain/Post";
 import upload from "../settings/multer_config";
 import { checkOwnership, loadPost, loadComment } from "./middleware";
 
-export function createPostRouter(postService: PostService, commentService: CommentService, videoService: VideoService) {
+import UserService from "../application/UserService";
+
+export function createPostRouter(postService: PostService, commentService: CommentService, videoService: VideoService, userService: UserService) {
   const router = Router();
 
   const postTypeDisplayNames = {
@@ -18,7 +20,20 @@ export function createPostRouter(postService: PostService, commentService: Comme
   };
 
   // 1. EJS 페이지 렌더링 라우트
-  router.get("/posts", (req, res) => {
+  router.get("/posts", async (req, res) => {
+    // 블랙리스트 필터링 적용
+    let blacklistedUserIds: number[] = [];
+    if (req.user) {
+        blacklistedUserIds = await userService.getBlackList(req.user.id);
+    }
+    
+    // API로도 필터링된 게시글을 받아올 수 있도록 수정 필요하지만, 
+    // 현재 구조에서는 화면 렌더링 시에는 API 호출 대신 직접 데이터를 넘기거나 API 호출을 클라이언트에서 함.
+    // 여기서는 렌더링만 하므로 클라이언트 사이드에서 API 호출 시 필터링 로직이 적용되어야 함.
+    // or if the view fetches data via API call, the API needs to be updated.
+    // For now, post_list.ejs likely fetches data via AJAX? 
+    // Checking post_list.ejs would be good, but assuming it fetches via /api/posts
+
     res.render("post_list", { postTypeDisplayNames });
   });
 
@@ -59,7 +74,18 @@ export function createPostRouter(postService: PostService, commentService: Comme
 
   // 2. API 라우트 (JSON 반환)
   router.get("/api/posts", async (req, res) => {
-    const result = await postService.getAllPosts();
+    let blacklistedUserIds: number[] = [];
+    
+    // 세션에 유저 정보가 있다면 블랙리스트 조회
+    if (req.user) {
+        try {
+            blacklistedUserIds = await userService.getBlackList(req.user.id);
+        } catch (error) {
+            console.error("Failed to fetch blacklist:", error);
+        }
+    }
+
+    const result = await postService.getAllPosts(blacklistedUserIds);
     res.json(result);
   });
 

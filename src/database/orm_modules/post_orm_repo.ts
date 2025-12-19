@@ -3,6 +3,8 @@ import { PostEn, CommentEn, PostType } from './../../domain/Post';
 import { UserEn } from './../../domain/User';
 import fs from 'fs';
 
+import { Not, In } from "typeorm";
+
 class PostOrmRepo {
     private postRepo = AppDataSource.getRepository(Post);
     private commentRepo = AppDataSource.getRepository(PostComment);
@@ -91,14 +93,19 @@ class PostOrmRepo {
         return postEn;
     }
 
-    async getAllPosts(): Promise<PostEn[]> {
+    async getAllPosts(blacklistedUserIds?: number[]): Promise<PostEn[]> {
         // Using QueryBuilder to efficiently get the comment count
-        const postEntities = await this.postRepo.createQueryBuilder("post")
+        const queryBuilder = this.postRepo.createQueryBuilder("post")
             .leftJoinAndSelect("post.writer", "writer")
             .leftJoinAndSelect("post.video", "video")
             .loadRelationCountAndMap("post.comment_count", "post.postComments")
-            .orderBy("post.createdAt", "DESC")
-            .getMany();
+            .orderBy("post.createdAt", "DESC");
+
+        if (blacklistedUserIds && blacklistedUserIds.length > 0) {
+            queryBuilder.where("writer.id NOT IN (:...ids)", { ids: blacklistedUserIds });
+        }
+
+        const postEntities = await queryBuilder.getMany();
 
         return postEntities.map(postEntity => {
             const postEn = new PostEn();

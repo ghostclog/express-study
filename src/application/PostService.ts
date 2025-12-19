@@ -16,8 +16,8 @@ class PostService {
         return await postRepo.getPostById(id);
     }
 
-    async getAllPosts(): Promise<PostEn[]> {
-        return await postRepo.getAllPosts();
+    async getAllPosts(blacklistedUserIds?: number[]): Promise<PostEn[]> {
+        return await postRepo.getAllPosts(blacklistedUserIds);
     }
 
     async updatePost(id: number, postData: Partial<PostEn>): Promise<PostEn | null> {

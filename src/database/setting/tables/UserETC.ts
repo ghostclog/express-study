@@ -20,3 +20,18 @@ export class UserReport {
   @CreateDateColumn()
   createdAt!: Date;
 }
+
+@Entity()
+export class BlackList {
+  @PrimaryGeneratedColumn()
+  id!: number;
+
+  @Column()
+  owner_id!: number; // 차단한 사람
+
+  @Column()
+  target_id!: number; // 차단 당한 사람
+
+  @CreateDateColumn()
+  createdAt!: Date;
+}

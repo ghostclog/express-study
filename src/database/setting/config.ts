@@ -10,10 +10,10 @@ import { UserProfile } from "./tables/UserProfile";
 import { Post } from "./tables/Post";
 import { PostComment } from "./tables/PostComment";
 import { Video } from "./tables/Video";
-import { UserReport } from './tables/UserETC';
+import { UserReport, BlackList } from './tables/UserETC';
 import { PostReport } from "./tables/PostReport"; // PostReport import 추가
 
-export { User, UserProfile, Post, PostComment, Video, UserReport, PostReport }; // PostReport export 추가
+export { User, UserProfile, Post, PostComment, Video, UserReport, BlackList, PostReport }; // PostReport export 추가
 
 // ---------- DB 연결 ----------
 export const AppDataSource = new DataSource({
@@ -25,7 +25,7 @@ export const AppDataSource = new DataSource({
   database: process.env.DB_DATABASE || 'node_study',
   synchronize: true, // 개발 환경에서는 true로 설정하여 자동 마이그레이션
   logging: true,
-  entities: [User, UserProfile, Post, PostComment, Video, UserReport, PostReport], // entities 배열에 PostReport 추가
+  entities: [User, UserProfile, Post, PostComment, Video, UserReport, BlackList, PostReport], // entities 배열에 PostReport 추가
   migrations: [],
   subscribers: [],
 });

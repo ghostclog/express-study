@@ -1,6 +1,6 @@
 
 import { UserProfile } from '../setting/tables/UserProfile';
-import { UserReport } from '../setting/tables/UserETC';
+import { UserReport, BlackList } from '../setting/tables/UserETC';
 import { UserEn } from './../../domain/User';
 import { AppDataSource, User } from "./../setting/config"; // main에서 import하지 말고 data-source.ts에서 import!
 
@@ -8,6 +8,7 @@ class UserOrmRepo {
     private userRepo = AppDataSource.getRepository(User);
     private userProfileRepo = AppDataSource.getRepository(UserProfile);
     private userReportRepo = AppDataSource.getRepository(UserReport);
+    private blackListRepo = AppDataSource.getRepository(BlackList);
     
     private toUserEn(user_entity: User): UserEn {
         const userEn = new UserEn();
@@ -72,6 +73,26 @@ class UserOrmRepo {
 
     async getAllReports(): Promise<UserReport[]> {
         return this.userReportRepo.find();
+    }
+
+    async getBlackList(userId: number): Promise<number[]> {
+        const blackList = await this.blackListRepo.find({
+            where: { owner_id: userId }
+        });
+        return blackList.map(item => item.target_id);
+    }
+
+    async addToBlackList(ownerId: number, targetId: number): Promise<void> {
+        const exists = await this.blackListRepo.findOne({
+            where: { owner_id: ownerId, target_id: targetId }
+        });
+        if (!exists) {
+            const newItem = this.blackListRepo.create({
+                owner_id: ownerId,
+                target_id: targetId
+            });
+            await this.blackListRepo.save(newItem);
+        }
     }
 
     //U
